@@ -29,3 +29,4 @@ for update
 to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
+-- trigger ci
