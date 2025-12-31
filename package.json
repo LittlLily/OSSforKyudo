@@ -19,8 +19,11 @@
     "deploy:dev": "pnpm env:use:dev && pnpm cf:build && pnpm cf:deploy:dev",
    "deploy:prod": "pnpm env:use:prod && pnpm cf:build && pnpm cf:deploy:prod",
 
-    "db:migrate:dev": "pnpm supabase db push --project-ref $SUPABASE_PROJECT_REF_DEV",
-    "db:migrate:prod": "pnpm supabase db push --project-ref $SUPABASE_PROJECT_REF_PROD"
+    "db:link:dev": "bash -lc 'set -a; source .env.production.dev; set +a; export SUPABASE_PROJECT_REF_DEV=$(echo $NEXT_PUBLIC_SUPABASE_URL | sed -E \"s#https?://([^./]+)\\..*#\\1#\"); pnpm supabase link --project-ref $SUPABASE_PROJECT_REF_DEV'",
+    "db:link:prod": "bash -lc 'set -a; source .env.production.prod; set +a; export SUPABASE_PROJECT_REF_PROD=$(echo $NEXT_PUBLIC_SUPABASE_URL | sed -E \"s#https?://([^./]+)\\..*#\\1#\"); pnpm supabase link --project-ref $SUPABASE_PROJECT_REF_PROD'",
+    "db:push": "pnpm supabase db push --linked",
+    "db:migrate:dev": "pnpm db:link:dev && pnpm db:push",
+    "db:migrate:prod": "pnpm db:link:prod && pnpm db:push"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
