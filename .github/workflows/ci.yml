@@ -90,4 +90,4 @@ jobs:
 
       - name: Stop Supabase local
         if: always()
-        run: supabase stop
+        run: pnpm exec supabase stop
