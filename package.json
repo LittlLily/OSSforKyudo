@@ -6,11 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint",
+
     "cf:build": "opennextjs-cloudflare build",
     "cf:dev": "opennextjs-cloudflare dev",
-    "cf:deploy:dev": "opennextjs-cloudflare deploy --env dev",
-    "cf:deploy:prod": "opennextjs-cloudflare deploy --env production",
-    "lint": "eslint"
+   "cf:deploy:dev": "opennextjs-cloudflare deploy --env dev --env-file .dev.vars",
+   "cf:deploy:prod": "opennextjs-cloudflare deploy --env production --env-file .prod.vars",
+
+   "env:use:dev": "cp .env.production.dev .env.production",
+   "env:use:prod": "cp .env.production.prod .env.production",
+
+    "deploy:dev": "pnpm env:use:dev && pnpm cf:build && pnpm cf:deploy:dev",
+   "deploy:prod": "pnpm env:use:prod && pnpm cf:build && pnpm cf:deploy:prod",
+
+    "db:migrate:dev": "pnpm supabase db push --project-ref $SUPABASE_PROJECT_REF_DEV",
+    "db:migrate:prod": "pnpm supabase db push --project-ref $SUPABASE_PROJECT_REF_PROD"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

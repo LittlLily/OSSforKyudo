@@ -23,6 +23,7 @@ export default function LoginPage() {
   return (
     <main className="p-6 max-w-md">
       <h1 className="text-2xl font-bold">Login</h1>
+      <h1 className="text-2xl font-bold">V0.0.2</h1>
 
       <label className="block mt-6">
         <span className="text-sm">Email</span>
