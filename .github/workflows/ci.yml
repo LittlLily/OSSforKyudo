@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      # Supabase CLI (Docker on ubuntu-latest)
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local
+        run: supabase start
+
+      # CIではURLは固定(ローカル既定)。キーは status -o env を流し込む。
+      - name: Export env for E2E
+        shell: bash
+        run: |
+          echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+          supabase status -o env >> $GITHUB_ENV || true
+
+          echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+          echo "E2E_USER_EMAIL=demo@example.com" >> $GITHUB_ENV
+          echo "E2E_USER_PASSWORD=password" >> $GITHUB_ENV
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start Next server
+        run: |
+          pnpm start -p 3000 &
+          pnpm exec wait-on http://localhost:3000/login
+
+      - name: Run E2E
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+      - name: Upload test-results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results
+          retention-days: 7
+
+      - name: Stop Supabase local
+        if: always()
+        run: supabase stop
