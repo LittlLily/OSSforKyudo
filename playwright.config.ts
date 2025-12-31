@@ -2,6 +2,20 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
+const projects = [
+  {
+    name: "chromium",
+    use: devices["Desktop Chrome"],
+  },
+];
+
+if (process.env.E2E_WEBKIT === "1") {
+  projects.push({
+    name: "webkit",
+    use: devices["Desktop Safari"],
+  });
+}
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
@@ -27,14 +41,5 @@ export default defineConfig({
   // ユーザーを事前作成してからテスト開始
   globalSetup: require.resolve("./e2e/global-setup"),
 
-  projects: [
-    {
-      name: "chromium",
-      use: devices["Desktop Chrome"],
-    },
-    {
-      name: "webkit",
-      use: devices["Desktop Safari"],
-    },
-  ],
+  projects,
 });
