@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -99,13 +102,28 @@ jobs:
           echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "E2E_USER_EMAIL=demo@example.com" >> $GITHUB_ENV
           echo "E2E_USER_PASSWORD=password" >> $GITHUB_ENV
-          echo "E2E_WEBKIT=1" >> $GITHUB_ENV
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || { [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; }; then
+            echo "E2E_WEBKIT=1" >> $GITHUB_ENV
+          fi
 
       - name: Build
         run: pnpm build
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium webkit
+        run: |
+          if [ "${E2E_WEBKIT}" = "1" ]; then
+            pnpm exec playwright install --with-deps chromium webkit
+          else
+            pnpm exec playwright install --with-deps chromium
+          fi
 
       - name: Start Next server
         run: |
