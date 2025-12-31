@@ -1,5 +1,3 @@
-import type { FullConfig } from "@playwright/test";
-
 const email = process.env.E2E_USER_EMAIL ?? "demo@example.com";
 const password = process.env.E2E_USER_PASSWORD ?? "password";
 
@@ -17,7 +15,7 @@ function mustPick(...names: string[]) {
   return v;
 }
 
-export default async function globalSetup(_config: FullConfig) {
+export default async function globalSetup() {
   const supabaseUrl = mustPick("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL");
 
   // supabase status -o env の出力差分を吸収
