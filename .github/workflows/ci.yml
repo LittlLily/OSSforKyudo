@@ -38,9 +38,6 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build
-        run: pnpm build
-
       # Supabase CLI (Docker on ubuntu-latest)
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
@@ -55,11 +52,18 @@ jobs:
         shell: bash
         run: |
           echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
-          supabase status -o env >> $GITHUB_ENV || true
+          SUPABASE_ENV="$(supabase status -o env)"
+          echo "$SUPABASE_ENV" >> $GITHUB_ENV
+
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+          echo "$SUPABASE_ENV" | sed -n 's/^SUPABASE_ANON_KEY=/NEXT_PUBLIC_SUPABASE_ANON_KEY=/p' >> $GITHUB_ENV
 
           echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "E2E_USER_EMAIL=demo@example.com" >> $GITHUB_ENV
           echo "E2E_USER_PASSWORD=password" >> $GITHUB_ENV
+
+      - name: Build
+        run: pnpm build
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
