@@ -58,6 +58,8 @@ jobs:
           if [ -z "$SUPABASE_URL_VALUE" ]; then
             SUPABASE_URL_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^API_URL=//p')"
           fi
+          SUPABASE_URL_VALUE="${SUPABASE_URL_VALUE#\"}"
+          SUPABASE_URL_VALUE="${SUPABASE_URL_VALUE%\"}"
           if [ -z "$SUPABASE_URL_VALUE" ]; then
             SUPABASE_URL_VALUE="http://127.0.0.1:54321"
           fi
@@ -68,6 +70,8 @@ jobs:
           if [ -z "$ANON_VALUE" ]; then
             ANON_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^ANON_KEY=//p')"
           fi
+          ANON_VALUE="${ANON_VALUE#\"}"
+          ANON_VALUE="${ANON_VALUE%\"}"
           if [ -z "$ANON_VALUE" ]; then
             echo "Missing anon key in supabase status -o env" >&2
             exit 1
