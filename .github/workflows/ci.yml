@@ -51,12 +51,28 @@ jobs:
       - name: Export env for E2E
         shell: bash
         run: |
-          echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
           SUPABASE_ENV="$(supabase status -o env)"
           echo "$SUPABASE_ENV" >> $GITHUB_ENV
 
-          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
-          echo "$SUPABASE_ENV" | sed -n 's/^SUPABASE_ANON_KEY=/NEXT_PUBLIC_SUPABASE_ANON_KEY=/p' >> $GITHUB_ENV
+          SUPABASE_URL_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^SUPABASE_URL=//p')"
+          if [ -z "$SUPABASE_URL_VALUE" ]; then
+            SUPABASE_URL_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^API_URL=//p')"
+          fi
+          if [ -z "$SUPABASE_URL_VALUE" ]; then
+            SUPABASE_URL_VALUE="http://127.0.0.1:54321"
+          fi
+          echo "SUPABASE_URL=$SUPABASE_URL_VALUE" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL_VALUE" >> $GITHUB_ENV
+
+          ANON_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^SUPABASE_ANON_KEY=//p')"
+          if [ -z "$ANON_VALUE" ]; then
+            ANON_VALUE="$(echo "$SUPABASE_ENV" | sed -n 's/^ANON_KEY=//p')"
+          fi
+          if [ -z "$ANON_VALUE" ]; then
+            echo "Missing anon key in supabase status -o env" >&2
+            exit 1
+          fi
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_VALUE" >> $GITHUB_ENV
 
           echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "E2E_USER_EMAIL=demo@example.com" >> $GITHUB_ENV
