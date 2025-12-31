@@ -6,19 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "cf:build": "opennextjs-cloudflare build",
     "cf:dev": "opennextjs-cloudflare dev",
-   "cf:deploy:dev": "opennextjs-cloudflare deploy --env dev --env-file .dev.vars",
-   "cf:deploy:prod": "opennextjs-cloudflare deploy --env production --env-file .prod.vars",
-
-   "env:use:dev": "cp .env.production.dev .env.production",
-   "env:use:prod": "cp .env.production.prod .env.production",
-
+    "cf:deploy:dev": "opennextjs-cloudflare deploy --env dev --env-file .dev.vars",
+    "cf:deploy:prod": "opennextjs-cloudflare deploy --env production --env-file .prod.vars",
+    "env:use:dev": "cp .env.production.dev .env.production",
+    "env:use:prod": "cp .env.production.prod .env.production",
     "deploy:dev": "pnpm env:use:dev && pnpm cf:build && pnpm cf:deploy:dev",
-   "deploy:prod": "pnpm env:use:prod && pnpm cf:build && pnpm cf:deploy:prod",
-
+    "deploy:prod": "pnpm env:use:prod && pnpm cf:build && pnpm cf:deploy:prod",
     "db:link:dev": "bash -lc 'set -a; source .env.production.dev; set +a; export SUPABASE_PROJECT_REF_DEV=$(echo $NEXT_PUBLIC_SUPABASE_URL | sed -E \"s#https?://([^./]+)\\..*#\\1#\"); pnpm supabase link --project-ref $SUPABASE_PROJECT_REF_DEV'",
     "db:link:prod": "bash -lc 'set -a; source .env.production.prod; set +a; export SUPABASE_PROJECT_REF_PROD=$(echo $NEXT_PUBLIC_SUPABASE_URL | sed -E \"s#https?://([^./]+)\\..*#\\1#\"); pnpm supabase link --project-ref $SUPABASE_PROJECT_REF_PROD'",
     "db:push": "pnpm supabase db push --linked",
@@ -33,7 +30,9 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@opennextjs/cloudflare": "^1.14.7",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -43,6 +42,7 @@
     "supabase": "^2.70.5",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "wait-on": "^9.0.3",
     "wrangler": "^4.54.0"
   }
 }
