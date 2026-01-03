@@ -49,3 +49,4 @@ next-env.d.ts
 .prod.vars.*
 playwright-report/
 test-results/
+memo.md
