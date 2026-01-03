@@ -44,4 +44,9 @@ next-env.d.ts
 .wrangler
 .open-next
 .dev.vars
+.dev.vars.*
 .prod.vars
+.prod.vars.*
+playwright-report/
+test-results/
+memo.md

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { signOut } from "@/app/actions/auth";
+import AdminCreateUserForm from "./AdminCreateUserForm";
 
 type ViewState =
   | { status: "loading" }
-  | { status: "authed"; email: string }
-  | { status: "guest" }
+  | { status: "authed"; email: string; role: "admin" | "user"; displayName?: string | null }
   | { status: "error"; message: string };
 
 export default function ProtectedPage() {
@@ -15,36 +15,34 @@ export default function ProtectedPage() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) return setState({ status: "error", message: error.message });
-
-      const email = data.session?.user.email;
-      if (!email) return setState({ status: "guest" });
-
-      setState({ status: "authed", email });
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = "/login?next=/protected";
+          return;
+        }
+        const data = (await res.json()) as {
+          user?: { email?: string | null; role?: "admin" | "user" };
+          profile?: { displayName?: string | null };
+          error?: string;
+        };
+        if (!res.ok) throw new Error(data.error || "failed to load user");
+        setState({
+          status: "authed",
+          email: data.user?.email ?? "",
+          role: data.user?.role ?? "user",
+          displayName: data.profile?.displayName ?? null,
+        });
+      } catch (err) {
+        setState({
+          status: "error",
+          message: err instanceof Error ? err.message : "unknown error",
+        });
+      }
     })();
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    location.href = "/login";
-  };
-
   if (state.status === "loading") return <main className="p-6">loading...</main>;
-
-  if (state.status === "guest") {
-    return (
-      <main className="p-6">
-        <h1 className="text-2xl font-bold">Protected</h1>
-        <p className="mt-4">You are not signed in.</p>
-        <p className="mt-4">
-          <Link className="underline" href="/login">
-            Go to login
-          </Link>
-        </p>
-      </main>
-    );
-  }
 
   if (state.status === "error") {
     return (
@@ -59,14 +57,22 @@ export default function ProtectedPage() {
     <main className="p-6">
       <h1 className="text-2xl font-bold">Protected</h1>
       <p className="mt-4">Welcome, {state.email}</p>
+      {state.displayName ? (
+        <p className="mt-1 text-sm">name: {state.displayName}</p>
+      ) : null}
+      <p className="mt-1 text-sm">role: {state.role}</p>
+
+      {state.role === "admin" ? <AdminCreateUserForm /> : null}
 
       <div className="mt-6 flex gap-3">
         <Link className="underline" href="/">
           Home
         </Link>
-        <button className="border rounded px-4 py-2" onClick={signOut}>
-          Sign out
-        </button>
+        <form action={signOut}>
+          <button className="border rounded px-4 py-2" type="submit">
+            Sign out
+          </button>
+        </form>
       </div>
     </main>
   );
