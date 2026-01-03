@@ -23,7 +23,30 @@ export async function createUser(
   }
 
   const supabase = createClient(await cookies());
-  const { data, error } = await supabase.functions.invoke("admin-create-user", {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return {
+      message: `error: auth user unavailable${
+        userError ? ` / ${userError.message}` : ""
+      }`,
+    };
+  }
+
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (sessionError || !accessToken) {
+    return {
+      message: `error: missing session token${
+        sessionError ? ` / ${sessionError.message}` : ""
+      }`,
+    };
+  }
+
+  const response = await supabase.functions.invoke("admin-create-user", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
     body: {
       email,
       password,
@@ -32,7 +55,18 @@ export async function createUser(
     },
   });
 
-  if (error) return { message: `error: ${error.message}` };
+  if (response.error) {
+    const details = [
+      response.error.message,
+      response.error.name,
+      response.error.context?.status
+        ? `status=${response.error.context.status}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" / ");
+    return { message: `error: ${details}` };
+  }
 
-  return { message: `created: ${data?.user_id ?? "ok"}` };
+  return { message: `created: ${response.data?.user_id ?? "ok"}` };
 }
