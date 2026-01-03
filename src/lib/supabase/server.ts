@@ -17,6 +17,20 @@ type CookieStore = {
   ): void;
 };
 
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: {
+    domain?: string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    path?: string;
+    sameSite?: "lax" | "strict" | "none";
+    secure?: boolean;
+  };
+};
+
 export function createClient(cookieStore: CookieStore) {
   const canSetCookies = typeof cookieStore.set === "function";
 
@@ -30,8 +44,8 @@ export function createClient(cookieStore: CookieStore) {
         },
         ...(canSetCookies
           ? {
-              setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value, options }) => {
+              setAll(cookiesToSet: CookieToSet[]) {
+                cookiesToSet.forEach(({ name, value, options }: CookieToSet) => {
                   cookieStore.set?.(name, value, options);
                 });
               },
