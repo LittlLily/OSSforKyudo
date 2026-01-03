@@ -39,6 +39,7 @@
   "exclude": [
     "node_modules",
     "supabase/functions/set-role/**",
-    "supabase/functions/bootstrap-admin/**"
+    "supabase/functions/bootstrap-admin/**",
+    "supabase/functions/admin-create-user/**"
   ]
 }

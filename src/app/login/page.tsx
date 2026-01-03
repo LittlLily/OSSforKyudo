@@ -1,17 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string>("");
+  const router = useRouter();
 
   const signIn = async () => {
     setMsg("signing in...");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setMsg(error ? `error: ${error.message}` : "ok: signed in");
+    if (error) {
+      setMsg(`error: ${error.message}`);
+      return;
+    }
+    setMsg("ok: signed in");
+    router.replace("/protected");
   };
 
   const signOut = async () => {
