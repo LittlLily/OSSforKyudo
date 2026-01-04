@@ -168,7 +168,14 @@ export async function POST(request: Request) {
 
   allowedKeys.forEach((key) => {
     if (key in profile) {
-      update[key] = profile[key] ?? null;
+      const value = profile[key];
+      if (key === "gender") {
+        if (value === "male" || value === "female" || value == null) {
+          update[key] = value ?? null;
+        }
+        return;
+      }
+      update[key] = value ?? null;
     }
   });
 
