@@ -80,6 +80,12 @@ export default function AdminProfilePage() {
             >
               Profile create
             </Link>
+            <Link
+              className="inline-block border rounded px-4 py-2"
+              href="/dashboard/profile/profile-delete"
+            >
+              Profile delete
+            </Link>
           </>
         ) : null}
         <Link
