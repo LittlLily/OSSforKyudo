@@ -7,7 +7,12 @@ import AdminCreateUserForm from "./AdminCreateUserForm";
 
 type ViewState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user"; displayName?: string | null }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      displayName?: string | null;
+    }
   | { status: "error"; message: string };
 
 export default function ProtectedPage() {
@@ -18,7 +23,7 @@ export default function ProtectedPage() {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          location.href = "/login?next=/protected";
+          location.href = "/login?next=/dashboard";
           return;
         }
         const data = (await res.json()) as {
@@ -42,27 +47,35 @@ export default function ProtectedPage() {
     })();
   }, []);
 
-  if (state.status === "loading") return <main className="p-6">loading...</main>;
+  if (state.status === "loading")
+    return <main className="p-6">loading...</main>;
 
   if (state.status === "error") {
     return (
       <main className="p-6">
-        <h1 className="text-2xl font-bold">Protected</h1>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="mt-4">error: {state.message}</p>
       </main>
     );
   }
 
+  const isAdmin = state.role === "admin";
+
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold">Protected</h1>
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      {isAdmin ? (
+        <Link className="underline" href="/dashboard/profile">
+          profile
+        </Link>
+      ) : null}
       <p className="mt-4">Welcome, {state.email}</p>
       {state.displayName ? (
         <p className="mt-1 text-sm">name: {state.displayName}</p>
       ) : null}
-      <p className="mt-1 text-sm">role: {state.role}</p>
+      <p className="mt-1 text-sm flex items-center gap-3">role: {state.role}</p>
 
-      {state.role === "admin" ? <AdminCreateUserForm /> : null}
+      {isAdmin ? <AdminCreateUserForm /> : null}
 
       <div className="mt-6 flex gap-3">
         <Link className="underline" href="/">
