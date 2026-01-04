@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 const userEmail = process.env.E2E_USER_EMAIL ?? "demo@example.com";
-const userPassword = process.env.E2E_USER_PASSWORD ?? "password1234!";
+const userPassword = process.env.E2E_USER_PASSWORD ?? "password";
 const adminEmail = process.env.E2E_ADMIN_EMAIL;
 const adminPassword = process.env.E2E_ADMIN_PASSWORD;
 
