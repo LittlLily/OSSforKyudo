@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut } from "@/app/actions/auth";
-import AdminCreateUserForm from "./AdminCreateUserForm";
 
 type ViewState =
   | { status: "loading" }
@@ -59,8 +58,6 @@ export default function ProtectedPage() {
     );
   }
 
-  const isAdmin = state.role === "admin";
-
   return (
     <main className="p-6">
       <div className="mb-4">
@@ -77,8 +74,6 @@ export default function ProtectedPage() {
         <p className="mt-1 text-sm">name: {state.displayName}</p>
       ) : null}
       <p className="mt-1 text-sm flex items-center gap-3">role: {state.role}</p>
-
-      {isAdmin ? <AdminCreateUserForm /> : null}
 
       <div className="mt-6 flex gap-3">
         <Link className="underline" href="/">
