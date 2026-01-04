@@ -98,6 +98,9 @@ jobs:
       # CIではURLは固定(ローカル既定)。キーは status -o env を流し込む。
       - name: Export env for build and E2E
         shell: bash
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
         run: |
           SUPABASE_ENV="$(supabase status -o env)"
           echo "$SUPABASE_ENV" >> $GITHUB_ENV
@@ -147,6 +150,10 @@ jobs:
           echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "E2E_USER_EMAIL=demo@example.com" >> $GITHUB_ENV
           echo "E2E_USER_PASSWORD=password" >> $GITHUB_ENV
+          if [ -n "${E2E_ADMIN_EMAIL:-}" ] && [ -n "${E2E_ADMIN_PASSWORD:-}" ]; then
+            echo "E2E_ADMIN_EMAIL=$E2E_ADMIN_EMAIL" >> $GITHUB_ENV
+            echo "E2E_ADMIN_PASSWORD=$E2E_ADMIN_PASSWORD" >> $GITHUB_ENV
+          fi
           if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || { [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; }; then
             echo "E2E_WEBKIT=1" >> $GITHUB_ENV
           fi

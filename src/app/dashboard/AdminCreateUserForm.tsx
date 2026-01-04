@@ -11,7 +11,11 @@ const initialState: AdminCreateState = { message: "" };
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button className="mt-4 border rounded px-4 py-2" type="submit" disabled={pending}>
+    <button
+      className="mt-4 border rounded px-4 py-2"
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "Creating..." : "Create"}
     </button>
   );
@@ -22,7 +26,6 @@ export default function AdminCreateUserForm() {
 
   return (
     <form className="mt-8 border rounded p-4" action={formAction}>
-      <h2 className="text-lg font-semibold">Create user</h2>
       <label className="block mt-4">
         <span className="text-sm">Email</span>
         <input

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const email = process.env.E2E_USER_EMAIL ?? 'demo@example.com';
-const password = process.env.E2E_USER_PASSWORD ?? 'password1234!';
+const password = process.env.E2E_USER_PASSWORD ?? 'password';
 
 async function signIn(page: Page) {
   await page.goto('/login');
@@ -23,8 +23,8 @@ async function signIn(page: Page) {
     .toBeTruthy();
 }
 
-test('未ログインで /protected → /login に飛ぶ', async ({ page }) => {
-  await page.goto('/protected');
+test('未ログインで /dashboard → /login に飛ぶ', async ({ page }) => {
+  await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login(\?|$)/);
 });
 
@@ -32,16 +32,16 @@ test('ログインするとセッションが作られる', async ({ page }) => 
   await signIn(page);
 });
 
-test('ログイン後は /protected が見える', async ({ page }) => {
+test('ログイン後は /dashboard が見える', async ({ page }) => {
   await signIn(page);
 
-  // 成功時に自動遷移しない実装でも、ここで明示的に /protected へ行く
-  await page.goto('/protected');
+  // 成功時に自動遷移しない実装でも、ここで明示的に /dashboard へ行く
+  await page.goto('/dashboard');
 
-  // ここは「protectedページ固有のテキスト」に寄せるのが最強
-  // ひとまずURLが protected であることを検証
-  await expect(page).toHaveURL(/\/protected/);
+  // ここは「dashboardページ固有のテキスト」に寄せるのが最強
+  // ひとまずURLが dashboard であることを検証
+  await expect(page).toHaveURL(/\/dashboard/);
 
   // さらに固有の要素があるならそれを見る（例: data-testid）
-  // await expect(page.getByTestId('protected-root')).toBeVisible();
+  // await expect(page.getByTestId('dashboard-root')).toBeVisible();
 });
