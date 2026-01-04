@@ -63,12 +63,15 @@ export default function ProtectedPage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      {isAdmin ? (
-        <Link className="underline" href="/dashboard/profile">
-          profile
+      <div className="mb-4">
+        <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+          Dashboard
         </Link>
-      ) : null}
+      </div>
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <Link className="underline" href="/dashboard/profile">
+        profile
+      </Link>
       <p className="mt-4">Welcome, {state.email}</p>
       {state.displayName ? (
         <p className="mt-1 text-sm">name: {state.displayName}</p>
