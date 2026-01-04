@@ -65,22 +65,30 @@ export default function AdminProfilePage() {
       </div>
       <h1 className="text-2xl font-bold">Profile</h1>
       <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
-      {auth.role === "admin" ? (
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            className="inline-block border rounded px-4 py-2"
-            href="/dashboard/profile/profile-edit"
-          >
-            Profile edit
-          </Link>
-          <Link
-            className="inline-block border rounded px-4 py-2"
-            href="/dashboard/profile/profile-create"
-          >
-            Profile create
-          </Link>
-        </div>
-      ) : null}
+      <div className="mt-6 flex flex-wrap gap-3">
+        {auth.role === "admin" ? (
+          <>
+            <Link
+              className="inline-block border rounded px-4 py-2"
+              href="/dashboard/profile/profile-edit"
+            >
+              Profile edit
+            </Link>
+            <Link
+              className="inline-block border rounded px-4 py-2"
+              href="/dashboard/profile/profile-create"
+            >
+              Profile create
+            </Link>
+          </>
+        ) : null}
+        <Link
+          className="inline-block border rounded px-4 py-2"
+          href="/dashboard/profile/profile-list"
+        >
+          Profile list
+        </Link>
+      </div>
     </main>
   );
 }
