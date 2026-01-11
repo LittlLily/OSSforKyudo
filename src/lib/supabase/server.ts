@@ -18,6 +18,8 @@ type CookieToSet = {
 
 export function createClient(cookieStore: CookieStore) {
   const canSetCookies = typeof cookieStore.set === "function";
+  const isE2EHttp =
+    (process.env.E2E_BASE_URL ?? "").startsWith("http://");
 
   const cookieMethods: CookieMethodsServer = {
     getAll() {
@@ -42,7 +44,7 @@ export function createClient(cookieStore: CookieStore) {
       cookieOptions: {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && !isE2EHttp,
         path: "/",
       },
     }

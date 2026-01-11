@@ -3,6 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
+  const isE2EHttp =
+    (process.env.E2E_BASE_URL ?? "").startsWith("http://");
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +23,7 @@ export async function middleware(request: NextRequest) {
       cookieOptions: {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && !isE2EHttp,
         path: "/",
       },
     }

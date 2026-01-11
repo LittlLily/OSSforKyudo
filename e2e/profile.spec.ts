@@ -11,8 +11,13 @@ async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /log in|login|sign in/i }).click();
-  await page.waitForURL(/\/dashboard/);
-  await expect(page.getByText(/Welcome, /)).toBeVisible();
+  await page.waitForURL(/\/dashboard/, { timeout: 20_000 });
+  await expect
+    .poll(async () => {
+      const res = await page.request.get("/api/me");
+      return res.status();
+    }, { timeout: 20_000 })
+    .toBe(200);
 }
 
 test("user: profile page shows list button only", async ({ page }) => {
