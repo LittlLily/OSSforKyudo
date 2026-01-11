@@ -166,15 +166,19 @@ export default function SurveyDetailPage() {
       const data = (await res.json()) as { option?: { id: string; label: string }; error?: string };
       if (!res.ok) throw new Error(data.error || "failed to add option");
       setDetail((prev) => {
-        if (!prev || !data.option) return prev;
+        const newOption = data.option;
+        if (!prev || !newOption) return prev;
+        const nextOption = {
+          id: newOption.id,
+          label: newOption.label,
+          created_by: null,
+          created_at: new Date().toISOString(),
+        };
         const nextQuestions = prev.questions.map((question) =>
           question.id === questionId
             ? {
                 ...question,
-                options: [
-                  ...question.options,
-                  { ...data.option, created_by: null, created_at: new Date().toISOString() },
-                ],
+                options: [...question.options, nextOption],
               }
             : question
         );

@@ -78,8 +78,9 @@ const computeAvailability = (survey: SurveyRow, now: number) => {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = await requireUser();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
@@ -101,7 +102,7 @@ export async function GET(
       .select(
         "id, title, description, status, opens_at, closes_at, is_anonymous, created_at, created_by"
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .maybeSingle();
     if (surveyResponse.error) throw surveyResponse.error;
     if (!surveyResponse.data) {
