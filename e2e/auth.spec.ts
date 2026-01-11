@@ -14,13 +14,8 @@ async function signIn(page: Page) {
 
   await page.getByRole('button', { name: /log in|login|sign in/i }).click();
 
-  // 「ログイン成功＝cookieが生えた」を最優先で確認する
-  await expect
-    .poll(async () => {
-      const cookies = await page.context().cookies();
-      return cookies.some((c) => c.name.includes('sb-') || c.name.includes('supabase'));
-    }, { timeout: 10_000 })
-    .toBeTruthy();
+  await page.waitForURL(/\/dashboard/);
+  await expect(page.getByText(/Welcome, /)).toBeVisible();
 }
 
 test('未ログインで /dashboard → /login に飛ぶ', async ({ page }) => {

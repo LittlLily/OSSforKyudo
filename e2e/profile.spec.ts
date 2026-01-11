@@ -11,14 +11,8 @@ async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /log in|login|sign in/i }).click();
-  await expect
-    .poll(async () => {
-      const cookies = await page.context().cookies();
-      return cookies.some(
-        (c) => c.name.includes("sb-") || c.name.includes("supabase")
-      );
-    }, { timeout: 10_000 })
-    .toBeTruthy();
+  await page.waitForURL(/\/dashboard/);
+  await expect(page.getByText(/Welcome, /)).toBeVisible();
 }
 
 test("user: profile page shows list button only", async ({ page }) => {
