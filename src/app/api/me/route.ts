@@ -7,6 +7,9 @@ export async function GET() {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
+    if (error.message.includes("Auth session missing")) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
