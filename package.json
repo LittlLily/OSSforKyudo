@@ -32,7 +32,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@opennextjs/cloudflare": "^1.14.7",
-    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -42,7 +41,6 @@
     "supabase": "^2.70.5",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "wait-on": "^9.0.3",
     "wrangler": "^4.54.0"
   }
 }
