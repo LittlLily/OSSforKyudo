@@ -6,6 +6,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      webkit:
+        description: "Run WebKit E2E"
+        type: boolean
+        default: false
   schedule:
     - cron: "0 0 * * *"
 
@@ -103,6 +108,7 @@ jobs:
           E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
           E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
           E2E_WEBKIT_LABEL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'e2e-webkit') }}
+          E2E_WEBKIT_INPUT: ${{ inputs.webkit }}
         run: |
           SUPABASE_ENV="$(supabase status -o env)"
           echo "$SUPABASE_ENV" >> $GITHUB_ENV
@@ -156,7 +162,7 @@ jobs:
             echo "E2E_ADMIN_EMAIL=$E2E_ADMIN_EMAIL" >> $GITHUB_ENV
             echo "E2E_ADMIN_PASSWORD=$E2E_ADMIN_PASSWORD" >> $GITHUB_ENV
           fi
-          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || { [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; } || [ "${E2E_WEBKIT_LABEL}" = "true" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || { [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; } || [ "${E2E_WEBKIT_LABEL}" = "true" ] || [ "${E2E_WEBKIT_INPUT}" = "true" ]; then
             echo "E2E_WEBKIT=1" >> $GITHUB_ENV
           fi
 
