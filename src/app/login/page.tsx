@@ -12,6 +12,7 @@ export default async function LoginPage({
   return (
     <main className="p-6 max-w-md">
       <h1 className="text-2xl font-bold">Login</h1>
+      <h1 className="text-2xl font-bold">テスト</h1>
       <h1 className="text-2xl font-bold">V0.0.0</h1>
       <LoginForm nextPath={nextPath} />
     </main>
