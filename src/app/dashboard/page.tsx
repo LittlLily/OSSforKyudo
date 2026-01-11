@@ -72,6 +72,9 @@ export default function ProtectedPage() {
       <Link href="/dashboard/profile">
         <h2 className="text-lg font-semibold">profile</h2>
       </Link>
+      <Link href="/dashboard/invoices">
+        <h2 className="text-lg font-semibold">invoices</h2>
+      </Link>
       <p className="mt-4">Welcome, {state.email}</p>
       {state.displayName ? (
         <p className="mt-1 text-sm">name: {state.displayName}</p>
