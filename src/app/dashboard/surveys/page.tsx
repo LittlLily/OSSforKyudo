@@ -94,7 +94,7 @@ export default function SurveysPage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/surveys/analytics">
+        <Link className="btn btn-primary" href="/dashboard/surveys/analytics">
           Analytics
         </Link>
         {role === "admin" ? (

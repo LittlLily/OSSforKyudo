@@ -377,7 +377,7 @@ export default function InvoicesPage() {
             </div>
             <div className="inline-list">
               <button
-                className="btn btn-primary"
+                className="btn btn-ghost"
                 onClick={() => void loadInvoices()}
                 type="button"
               >
@@ -552,7 +552,7 @@ export default function InvoicesPage() {
                                 Edit
                               </button>
                               <button
-                                className="btn btn-primary"
+                                className="btn btn-ghost"
                                 onClick={() => void approveInvoice(invoice.id)}
                                 type="button"
                               >

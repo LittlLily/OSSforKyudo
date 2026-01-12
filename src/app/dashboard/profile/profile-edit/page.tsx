@@ -35,6 +35,7 @@ export default function AdminProfileEditPage() {
   const [targetEmail, setTargetEmail] = useState("");
   const [loadedId, setLoadedId] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>(emptyForm);
+  const [role, setRole] = useState<"" | "admin" | "user">("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -91,6 +92,7 @@ export default function AdminProfileEditPage() {
       const data = bodyText
         ? ((JSON.parse(bodyText) as {
             profile?: Partial<ProfileForm> & { id?: string | null };
+            role?: "admin" | "user";
             error?: string;
           }) ?? {})
         : {};
@@ -110,6 +112,7 @@ export default function AdminProfileEditPage() {
         ryuha: profile.ryuha ?? "",
         position: profile.position ?? "",
       });
+      setRole(data.role ?? "user");
       setLoadedId(profile.id ?? null);
       if (profile.id) {
         setMessage(`loaded: ${profile.id}`);
@@ -143,6 +146,7 @@ export default function AdminProfileEditPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: loadedId,
+          role: role === "" ? undefined : role,
           profile: {
             display_name: toNullable(form.display_name),
             student_number: toNullable(form.student_number),
@@ -308,6 +312,22 @@ export default function AdminProfileEditPage() {
             value={form.position}
             onChange={(event) => setField("position", event.target.value)}
           />
+        </label>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            role
+          </span>
+          <select
+            className="w-full"
+            value={role}
+            onChange={(event) =>
+              setRole(event.target.value as "admin" | "user" | "")
+            }
+          >
+            <option value="">(empty)</option>
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </select>
         </label>
 
         <button

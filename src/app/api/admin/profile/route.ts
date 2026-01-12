@@ -17,6 +17,8 @@ type ProfileUpdate = {
   position?: string | null;
 };
 
+type RoleUpdate = "admin" | "user";
+
 async function requireAdmin() {
   const supabase = createClient(await cookies());
   const { data, error } = await supabase.auth.getUser();
@@ -130,7 +132,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ profile: data });
+  const { data: userData, error: userError } =
+    await adminClient.auth.admin.getUserById(id);
+
+  if (userError) {
+    return NextResponse.json({ error: userError.message }, { status: 500 });
+  }
+
+  const role =
+    (userData.user?.app_metadata?.role as RoleUpdate | undefined) ?? "user";
+
+  return NextResponse.json({ profile: data, role });
 }
 
 export async function POST(request: Request) {
@@ -139,12 +151,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
 
-  let payload: { id?: string; email?: string; profile?: ProfileUpdate };
+  let payload: {
+    id?: string;
+    email?: string;
+    profile?: ProfileUpdate;
+    role?: RoleUpdate;
+  };
   try {
     payload = (await request.json()) as {
       id?: string;
       email?: string;
       profile?: ProfileUpdate;
+      role?: RoleUpdate;
     };
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
@@ -152,6 +170,7 @@ export async function POST(request: Request) {
 
   let id = payload.id ?? "";
   const email = payload.email ?? "";
+  const requestedRole = payload.role;
 
   const profile = payload.profile ?? {};
   const update: ProfileUpdate = {};
@@ -178,13 +197,6 @@ export async function POST(request: Request) {
       update[key] = value ?? null;
     }
   });
-
-  if (Object.keys(update).length === 0) {
-    return NextResponse.json(
-      { error: "no fields to update" },
-      { status: 400 }
-    );
-  }
 
   let adminClient;
   try {
@@ -214,20 +226,50 @@ export async function POST(request: Request) {
     }
   }
 
-  const { data, error } = await adminClient
-    .from("profiles")
-    .update(update)
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (Object.keys(update).length === 0 && !requestedRole) {
+    return NextResponse.json(
+      { error: "no fields to update" },
+      { status: 400 }
+    );
   }
 
-  if (!data) {
+  if (requestedRole === "admin" || requestedRole === "user") {
+    const { data: userData, error: userError } =
+      await adminClient.auth.admin.getUserById(id);
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 });
+    }
+    const appMetadata = userData.user?.app_metadata ?? {};
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(
+      id,
+      {
+        app_metadata: { ...appMetadata, role: requestedRole },
+      }
+    );
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 400 });
+    }
+  }
+
+  let data;
+  if (Object.keys(update).length > 0) {
+    const response = await adminClient
+      .from("profiles")
+      .update(update)
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
+    if (response.error) {
+      return NextResponse.json({ error: response.error.message }, { status: 400 });
+    }
+
+    data = response.data;
+  }
+
+  if (!data && Object.keys(update).length > 0) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ ok: true, id: data.id });
+  return NextResponse.json({ ok: true, id });
 }

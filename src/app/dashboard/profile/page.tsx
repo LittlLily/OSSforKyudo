@@ -56,19 +56,19 @@ export default function AdminProfilePage() {
         {auth.role === "admin" ? (
           <>
             <Link
-              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
+              className="btn btn-primary py-6"
               href="/dashboard/profile/profile-edit"
             >
               Profile edit
             </Link>
             <Link
-              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
+              className="btn btn-primary py-6"
               href="/dashboard/profile/profile-create"
             >
               Profile create
             </Link>
             <Link
-              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
+              className="btn btn-primary py-6"
               href="/dashboard/profile/profile-delete"
             >
               Profile delete
@@ -76,7 +76,7 @@ export default function AdminProfilePage() {
           </>
         ) : null}
         <Link
-          className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
+          className="btn btn-primary py-6"
           href="/dashboard/profile/profile-list"
         >
           Profile list
