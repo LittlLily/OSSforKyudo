@@ -12,7 +12,7 @@ export async function signIn(
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const nextPath = String(formData.get("next") ?? "/protected");
+  const nextPath = String(formData.get("next") ?? "/");
 
   if (!email || !password) {
     return { message: "error: email and password are required" };

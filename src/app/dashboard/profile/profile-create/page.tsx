@@ -1,42 +1,37 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import AdminCreateUserForm from "../../AdminCreateUserForm";
 
-type ViewState =
+type AuthState =
   | { status: "loading" }
-  | {
-      status: "authed";
-      email: string;
-      role: "admin" | "user";
-      displayName?: string | null;
-    }
+  | { status: "authed"; email: string; role: "admin" | "user" }
   | { status: "error"; message: string };
 
-export default function Home() {
-  const [state, setState] = useState<ViewState>({ status: "loading" });
+export default function AdminProfileCreatePage() {
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
 
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          location.href = "/login?next=/";
+          location.href = "/login?next=/dashboard/profile/profile-create";
           return;
         }
         const data = (await res.json()) as {
           user?: { email?: string | null; role?: "admin" | "user" };
-          profile?: { displayName?: string | null };
           error?: string;
         };
         if (!res.ok) throw new Error(data.error || "failed to load user");
-        setState({
+        setAuth({
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
-          displayName: data.profile?.displayName ?? null,
         });
       } catch (err) {
-        setState({
+        setAuth({
           status: "error",
           message: err instanceof Error ? err.message : "unknown error",
         });
@@ -44,22 +39,35 @@ export default function Home() {
     })();
   }, []);
 
-  if (state.status === "loading")
+  if (auth.status === "loading") {
     return <main className="page">loading...</main>;
+  }
 
-  if (state.status === "error") {
+  if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {state.message}</p>
+        <p className="text-sm">error: {auth.message}</p>
+      </main>
+    );
+  }
+
+  if (auth.role !== "admin") {
+    return (
+      <main className="page">
+        <p className="text-sm">forbidden</p>
+        <Link className="btn btn-ghost" href="/dashboard/profile">
+          Back
+        </Link>
       </main>
     );
   }
 
   return (
     <main className="page">
-      <div className="text-sm text-[color:var(--muted)]">
-        Dashboard content is intentionally empty.
-      </div>
+      <AdminCreateUserForm />
+      <Link className="btn btn-ghost" href="/dashboard/profile">
+        Back
+      </Link>
     </main>
   );
 }

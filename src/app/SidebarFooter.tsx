@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signOut } from "@/app/actions/auth";
 
 type ViewState =
   | { status: "loading" }
@@ -9,10 +10,11 @@ type ViewState =
       email: string;
       role: "admin" | "user";
       displayName?: string | null;
+      studentNumber?: string | null;
     }
   | { status: "error"; message: string };
 
-export default function Home() {
+export default function SidebarFooter() {
   const [state, setState] = useState<ViewState>({ status: "loading" });
 
   useEffect(() => {
@@ -20,12 +22,15 @@ export default function Home() {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          location.href = "/login?next=/";
+          setState({ status: "error", message: "not signed in" });
           return;
         }
         const data = (await res.json()) as {
           user?: { email?: string | null; role?: "admin" | "user" };
-          profile?: { displayName?: string | null };
+          profile?: {
+            displayName?: string | null;
+            studentNumber?: string | null;
+          };
           error?: string;
         };
         if (!res.ok) throw new Error(data.error || "failed to load user");
@@ -34,6 +39,7 @@ export default function Home() {
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
           displayName: data.profile?.displayName ?? null,
+          studentNumber: data.profile?.studentNumber ?? null,
         });
       } catch (err) {
         setState({
@@ -44,22 +50,29 @@ export default function Home() {
     })();
   }, []);
 
-  if (state.status === "loading")
-    return <main className="page">loading...</main>;
+  if (state.status === "loading") {
+    return <div className="text-xs text-[color:var(--muted)]">loading...</div>;
+  }
 
   if (state.status === "error") {
     return (
-      <main className="page">
-        <p className="text-sm">error: {state.message}</p>
-      </main>
+      <div className="text-xs text-[color:var(--muted)]">
+        {state.message}
+      </div>
     );
   }
 
   return (
-    <main className="page">
-      <div className="text-sm text-[color:var(--muted)]">
-        Dashboard content is intentionally empty.
-      </div>
-    </main>
+    <div className="space-y-3 text-sm">
+      <p>name: {state.displayName ?? "てすとさん"}</p>
+      <p>student number: {state.studentNumber ?? "-"}</p>
+      <p>role: {state.role}</p>
+      <form action={signOut}>
+        <button className="btn btn-ghost" type="submit">
+          Sign out
+        </button>
+      </form>
+      <p className="text-xs text-[color:var(--muted)]">V0.0.0</p>
+    </div>
   );
 }

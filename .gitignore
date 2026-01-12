@@ -47,6 +47,4 @@ next-env.d.ts
 .dev.vars.*
 .prod.vars
 .prod.vars.*
-playwright-report/
-test-results/
 memo.md

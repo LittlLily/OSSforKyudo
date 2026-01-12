@@ -11,7 +11,11 @@ const initialState: AdminCreateState = { message: "" };
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button className="mt-4 border rounded px-4 py-2" type="submit" disabled={pending}>
+    <button
+      className="btn btn-primary"
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "Creating..." : "Create"}
     </button>
   );
@@ -21,40 +25,49 @@ export default function AdminCreateUserForm() {
   const [state, formAction] = useActionState(createUser, initialState);
 
   return (
-    <form className="mt-8 border rounded p-4" action={formAction}>
-      <h2 className="text-lg font-semibold">Create user</h2>
-      <label className="block mt-4">
-        <span className="text-sm">Email</span>
+    <form className="card space-y-4" action={formAction}>
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Email
+        </span>
         <input
-          className="mt-1 w-full border rounded px-3 py-2"
+          className="w-full"
           name="email"
           autoComplete="email"
         />
       </label>
-      <label className="block mt-4">
-        <span className="text-sm">Password</span>
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Password
+        </span>
         <input
-          className="mt-1 w-full border rounded px-3 py-2"
+          className="w-full"
           type="password"
           name="password"
           autoComplete="new-password"
         />
       </label>
-      <label className="block mt-4">
-        <span className="text-sm">Name (日本語)</span>
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Name (日本語)
+        </span>
         <input
-          className="mt-1 w-full border rounded px-3 py-2"
+          className="w-full"
           name="display_name"
         />
       </label>
-      <label className="block mt-4">
-        <span className="text-sm">Role</span>
-        <select className="mt-1 w-full border rounded px-3 py-2" name="role">
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Role
+        </span>
+        <select className="w-full" name="role">
           <option value="user">user</option>
           <option value="admin">admin</option>
         </select>
       </label>
-      <SubmitButton />
+      <div className="inline-list">
+        <SubmitButton />
+      </div>
       {state.message ? (
         <p className="mt-2 text-sm whitespace-pre-wrap">{state.message}</p>
       ) : null}

@@ -7,6 +7,9 @@ export async function GET() {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
+    if (error.message.includes("Auth session missing")) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
@@ -18,7 +21,7 @@ export async function GET() {
     (data.user.app_metadata?.role as "admin" | "user") ?? "user";
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select("display_name, student_number")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -30,6 +33,7 @@ export async function GET() {
     },
     profile: {
       displayName: profile?.display_name ?? null,
+      studentNumber: profile?.student_number ?? null,
     },
   });
 }
