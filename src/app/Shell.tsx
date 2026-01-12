@@ -45,6 +45,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     if (path.startsWith("/dashboard/invoices")) return "Invoices";
     if (path.startsWith("/dashboard/logs/account")) return "Account Logs";
     if (path.startsWith("/dashboard/logs/invoices")) return "Invoice Logs";
+    if (path.startsWith("/dashboard/logs/bows")) return "Bow Logs";
     if (path.startsWith("/dashboard/logs")) return "Logs";
     if (path.startsWith("/dashboard/surveys/analytics"))
       return "Survey Analytics";
@@ -91,6 +92,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         return <HiOutlineUserCircle />;
       case "Invoice Logs":
         return <HiOutlineReceiptRefund />;
+      case "Bow Logs":
+        return <TbBow />;
       case "Surveys":
         return <HiOutlineClipboardDocumentList />;
       case "Survey Create":

@@ -7,6 +7,7 @@ import {
   HiOutlineReceiptRefund,
   HiOutlineUserCircle,
 } from "react-icons/hi2";
+import { TbBow } from "react-icons/tb";
 
 type AuthState =
   | { status: "loading" }
@@ -89,6 +90,13 @@ export default function LogsPage() {
               ? "全請求の操作履歴"
               : "自分に紐づく請求の履歴"}
           </p>
+        </Link>
+        <Link className="card" href="/dashboard/logs/bows">
+          <h2 className="section-title flex items-center gap-2">
+            <TbBow className="text-base" />
+            弓ログ
+          </h2>
+          <p className="mt-2 text-sm">弓の操作履歴</p>
         </Link>
       </div>
     </main>

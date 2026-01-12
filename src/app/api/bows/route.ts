@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logBowAction } from "@/lib/audit";
 
 const LENGTH_VALUES = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 type BowLength = (typeof LENGTH_VALUES)[number];
@@ -166,6 +167,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = createClient(await cookies());
+  let adminClient;
+  try {
+    adminClient = getAdminClient();
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "config error" },
+      { status: 500 }
+    );
+  }
 
   try {
     const body = (await request.json()) as {
@@ -225,6 +235,12 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await logBowAction(adminClient, {
+      action: "弓作成",
+      operatorId: auth.userId,
+      bowNumber,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

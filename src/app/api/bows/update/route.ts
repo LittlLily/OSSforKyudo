@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logBowAction } from "@/lib/audit";
 
 const LENGTH_VALUES = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 type BowLength = (typeof LENGTH_VALUES)[number];
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 type AuthResult =
-  | { ok: true; role: "admin" | "user" }
+  | { ok: true; role: "admin" | "user"; userId: string }
   | { ok: false; status: number; message: string };
 
 async function requireUser(): Promise<AuthResult> {
@@ -21,7 +25,7 @@ async function requireUser(): Promise<AuthResult> {
   }
   const role =
     (data.user.app_metadata?.role as "admin" | "user") ?? "user";
-  return { ok: true, role };
+  return { ok: true, role, userId: data.user.id };
 }
 
 function normalizeLength(value?: string | null): BowLength | null {
@@ -30,6 +34,15 @@ function normalizeLength(value?: string | null): BowLength | null {
     return value as BowLength;
   }
   return null;
+}
+
+function getAdminClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("missing supabase service role config");
+  }
+  return createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
 }
 
 export async function POST(request: Request) {
@@ -42,6 +55,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = createClient(await cookies());
+  let adminClient;
+  try {
+    adminClient = getAdminClient();
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "config error" },
+      { status: 500 }
+    );
+  }
 
   try {
     const body = (await request.json()) as {
@@ -109,6 +131,12 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await logBowAction(adminClient, {
+      action: "弓編集",
+      operatorId: auth.userId,
+      bowNumber,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

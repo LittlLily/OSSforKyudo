@@ -85,7 +85,6 @@ export default function BowListPage() {
 
   useEffect(() => {
     if (auth.status !== "authed") return;
-    void handleSearch();
   }, [auth.status]);
 
   const updateField = (key: keyof SearchForm, value: string) => {
@@ -122,13 +121,6 @@ export default function BowListPage() {
     setForm(emptySearch);
     setList({ status: "idle" });
   };
-
-  useEffect(() => {
-    if (list.status !== "idle") return;
-    const isBlank = Object.values(form).every((value) => value === "");
-    if (!isBlank) return;
-    void handleSearch();
-  }, [form, list.status]);
 
   if (auth.status === "loading") {
     return <main className="page">読み込み中...</main>;

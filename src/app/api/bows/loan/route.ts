@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logBowAction } from "@/lib/audit";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 type AuthResult =
-  | { ok: true }
+  | { ok: true; userId: string }
   | { ok: false; status: number; message: string };
 
 async function requireUser(): Promise<AuthResult> {
@@ -16,7 +21,7 @@ async function requireUser(): Promise<AuthResult> {
   if (!data.user) {
     return { ok: false, status: 401, message: "unauthorized" };
   }
-  return { ok: true };
+  return { ok: true, userId: data.user.id };
 }
 
 function parseDate(value?: string | null) {
@@ -26,6 +31,15 @@ function parseDate(value?: string | null) {
   return date.toISOString();
 }
 
+function getAdminClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("missing supabase service role config");
+  }
+  return createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
+
 export async function POST(request: Request) {
   const auth = await requireUser();
   if (!auth.ok) {
@@ -33,6 +47,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = createClient(await cookies());
+  let adminClient;
+  try {
+    adminClient = getAdminClient();
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "config error" },
+      { status: 500 }
+    );
+  }
 
   try {
     const body = (await request.json()) as {
@@ -51,10 +74,13 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (borrowerProfileId !== auth.userId) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
 
     const bowResponse = await supabase
       .from("japanese_bows")
-      .select("borrower_profile_id")
+      .select("borrower_profile_id, bow_number")
       .eq("id", bowId)
       .maybeSingle();
     if (bowResponse.error) {
@@ -116,6 +142,12 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    await logBowAction(adminClient, {
+      action: "弓貸出",
+      operatorId: auth.userId,
+      bowNumber: bowResponse.data?.bow_number ?? null,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
