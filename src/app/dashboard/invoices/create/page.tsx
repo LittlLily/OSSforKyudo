@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineArrowPath,
+  HiOutlineCheckCircle,
+  HiOutlineMagnifyingGlass,
+  HiOutlineReceiptRefund,
+  HiOutlineSquares2X2,
+  HiOutlineUserGroup,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -165,7 +174,8 @@ export default function InvoiceCreatePage() {
     return (
       <main className="page">
         <div className="inline-list">
-          <Link className="btn btn-ghost" href="/dashboard/invoices">
+          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+            <HiOutlineArrowLeft className="text-base" />
             Invoices
           </Link>
         </div>
@@ -178,7 +188,8 @@ export default function InvoiceCreatePage() {
     return (
       <main className="page">
         <div className="inline-list">
-          <Link className="btn btn-ghost" href="/dashboard/invoices">
+          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+            <HiOutlineArrowLeft className="text-base" />
             Invoices
           </Link>
         </div>
@@ -190,13 +201,17 @@ export default function InvoiceCreatePage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/invoices">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+          <HiOutlineArrowLeft className="text-base" />
           Invoices
         </Link>
       </div>
 
       <section className="section">
-        <h2 className="section-title">Search accounts</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineMagnifyingGlass className="text-base" />
+          Search accounts
+        </h2>
         <div className="card space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="field text-sm">
@@ -263,7 +278,10 @@ export default function InvoiceCreatePage() {
               onClick={() => void searchUsers()}
               type="button"
             >
-              Search
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineMagnifyingGlass className="text-base" />
+                Search
+              </span>
             </button>
             <button
               className="btn btn-ghost"
@@ -273,14 +291,20 @@ export default function InvoiceCreatePage() {
               }}
               type="button"
             >
-              Reset
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineArrowPath className="text-base" />
+                Reset
+              </span>
             </button>
           </div>
         </div>
       </section>
 
       <section className="section">
-        <h2 className="section-title">Create invoice</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineReceiptRefund className="text-base" />
+          Create invoice
+        </h2>
         <div className="card space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="field text-sm">
@@ -316,7 +340,10 @@ export default function InvoiceCreatePage() {
               onClick={submitInvoices}
               type="button"
             >
-              Create invoices
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineCheckCircle className="text-base" />
+                Create invoices
+              </span>
             </button>
             {message ? <p className="text-sm">{message}</p> : null}
           </div>
@@ -325,13 +352,19 @@ export default function InvoiceCreatePage() {
 
       <section className="section">
         <div className="inline-list">
-          <h2 className="section-title">Accounts</h2>
+          <h2 className="section-title flex items-center gap-2">
+            <HiOutlineUserGroup className="text-base" />
+            Accounts
+          </h2>
           <button
             className="btn btn-ghost"
             onClick={toggleSelectAll}
             type="button"
           >
-            {allSelected ? "Unselect all" : "Select all"}
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineSquares2X2 className="text-base" />
+              {allSelected ? "Unselect all" : "Select all"}
+            </span>
           </button>
         </div>
         {loading ? <p className="text-sm">loading...</p> : null}

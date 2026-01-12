@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowRightOnRectangle,
+  HiOutlineIdentification,
+  HiOutlineShieldCheck,
+  HiOutlineTag,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 import { signOut } from "@/app/actions/auth";
 
 type ViewState =
@@ -64,15 +71,28 @@ export default function SidebarFooter() {
 
   return (
     <div className="space-y-3 text-sm">
-      <p>name: {state.displayName ?? "てすとさん"}</p>
-      <p>student number: {state.studentNumber ?? "-"}</p>
-      <p>role: {state.role}</p>
+      <p className="flex items-center gap-2">
+        <HiOutlineUserCircle className="text-base" />
+        name: {state.displayName ?? "てすとさん"}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineIdentification className="text-base" />
+        student number: {state.studentNumber ?? "-"}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineShieldCheck className="text-base" />
+        role: {state.role}
+      </p>
       <form action={signOut}>
-        <button className="btn btn-ghost" type="submit">
+        <button className="btn btn-ghost inline-flex items-center gap-2" type="submit">
+          <HiOutlineArrowRightOnRectangle className="text-base" />
           Sign out
         </button>
       </form>
-      <p className="text-xs text-[color:var(--muted)]">V0.0.0</p>
+      <p className="flex items-center gap-2 text-xs text-[color:var(--muted)]">
+        <HiOutlineTag className="text-sm" />
+        V0.0.0
+      </p>
     </div>
   );
 }

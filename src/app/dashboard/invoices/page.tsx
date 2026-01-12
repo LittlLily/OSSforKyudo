@@ -2,6 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineAdjustmentsHorizontal,
+  HiOutlineArrowPath,
+  HiOutlineArrowUturnLeft,
+  HiOutlineCheckBadge,
+  HiOutlineCheckCircle,
+  HiOutlineClock,
+  HiOutlineMagnifyingGlass,
+  HiOutlinePencilSquare,
+  HiOutlinePlusCircle,
+  HiOutlineReceiptRefund,
+  HiOutlineTrash,
+  HiOutlineXMark,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -277,7 +291,8 @@ export default function InvoicesPage() {
     <main className="page">
       {isAdmin ? (
         <div className="inline-list">
-          <Link className="btn btn-primary" href="/dashboard/invoices/create">
+          <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/invoices/create">
+            <HiOutlinePlusCircle className="text-base" />
             Create invoice
           </Link>
         </div>
@@ -295,7 +310,10 @@ export default function InvoicesPage() {
             }}
             type="button"
           >
-            Pending
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineClock className="text-base" />
+              Pending
+            </span>
           </button>
           <button
             className={`btn ${
@@ -307,14 +325,20 @@ export default function InvoicesPage() {
             }}
             type="button"
           >
-            Approved
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineCheckCircle className="text-base" />
+              Approved
+            </span>
           </button>
         </div>
       </section>
 
       {isAdmin ? (
         <section className="section">
-          <h2 className="section-title">Filters</h2>
+          <h2 className="section-title flex items-center gap-2">
+            <HiOutlineAdjustmentsHorizontal className="text-base" />
+            Filters
+          </h2>
           <div className="card space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <label className="field text-sm">
@@ -381,7 +405,10 @@ export default function InvoicesPage() {
                 onClick={() => void loadInvoices()}
                 type="button"
               >
-                Search
+                <span className="inline-flex items-center gap-2">
+                  <HiOutlineMagnifyingGlass className="text-base" />
+                  Search
+                </span>
               </button>
               <button
                 className="btn btn-ghost"
@@ -391,7 +418,10 @@ export default function InvoicesPage() {
                 }}
                 type="button"
               >
-                Reset
+                <span className="inline-flex items-center gap-2">
+                  <HiOutlineArrowPath className="text-base" />
+                  Reset
+                </span>
               </button>
             </div>
           </div>
@@ -399,7 +429,14 @@ export default function InvoicesPage() {
       ) : null}
 
       <section className="section">
-        <h2 className="section-title">
+        <h2 className="section-title flex items-center gap-2">
+          <span className="text-base">
+            {statusFilter === "pending" ? (
+              <HiOutlineReceiptRefund />
+            ) : (
+              <HiOutlineCheckBadge />
+            )}
+          </span>
           {statusFilter === "pending" ? "Pending invoices" : "Approved invoices"}
         </h2>
         {message ? <p className="text-sm">{message}</p> : null}
@@ -515,14 +552,20 @@ export default function InvoicesPage() {
                                 onClick={() => void revertInvoice(invoice.id)}
                                 type="button"
                               >
-                                Revert
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineArrowUturnLeft className="text-base" />
+                                  Revert
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >
-                                Delete
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineTrash className="text-base" />
+                                  Delete
+                                </span>
                               </button>
                             </>
                           ) : editingId === invoice.id ? (
@@ -532,14 +575,20 @@ export default function InvoicesPage() {
                                 onClick={() => void saveEdit(invoice.id)}
                                 type="button"
                               >
-                                Save
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineCheckCircle className="text-base" />
+                                  Save
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={cancelEdit}
                                 type="button"
                               >
-                                Cancel
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineXMark className="text-base" />
+                                  Cancel
+                                </span>
                               </button>
                             </>
                           ) : (
@@ -549,21 +598,30 @@ export default function InvoicesPage() {
                                 onClick={() => beginEdit(invoice)}
                                 type="button"
                               >
-                                Edit
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlinePencilSquare className="text-base" />
+                                  Edit
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={() => void approveInvoice(invoice.id)}
                                 type="button"
                               >
-                                Approve
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineCheckBadge className="text-base" />
+                                  Approve
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >
-                                Delete
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineTrash className="text-base" />
+                                  Delete
+                                </span>
                               </button>
                             </>
                           )

@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  HiOutlineClipboardDocumentList,
+  HiOutlinePlusCircle,
+  HiOutlineTrash,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -56,29 +62,33 @@ export default function AdminProfilePage() {
         {auth.role === "admin" ? (
           <>
             <Link
-              className="btn btn-primary py-6"
+              className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/profile/profile-edit"
             >
+              <HiOutlineUserCircle className="text-lg" />
               Profile edit
             </Link>
             <Link
-              className="btn btn-primary py-6"
+              className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/profile/profile-create"
             >
+              <HiOutlinePlusCircle className="text-lg" />
               Profile create
             </Link>
             <Link
-              className="btn btn-primary py-6"
+              className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/profile/profile-delete"
             >
+              <HiOutlineTrash className="text-lg" />
               Profile delete
             </Link>
           </>
         ) : null}
         <Link
-          className="btn btn-primary py-6"
+          className="btn btn-primary py-6 inline-flex items-center gap-3"
           href="/dashboard/profile/profile-list"
         >
+          <HiOutlineClipboardDocumentList className="text-lg" />
           Profile list
         </Link>
       </div>

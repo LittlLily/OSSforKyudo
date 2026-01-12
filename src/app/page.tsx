@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HiOutlineHome } from "react-icons/hi2";
 
 type ViewState =
   | { status: "loading" }
@@ -57,7 +58,8 @@ export default function Home() {
 
   return (
     <main className="page">
-      <div className="text-sm text-[color:var(--muted)]">
+      <div className="flex items-center gap-2 text-sm text-[color:var(--muted)]">
+        <HiOutlineHome className="text-base" />
         Dashboard content is intentionally empty.
       </div>
     </main>

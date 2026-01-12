@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineChartBar,
+  HiOutlineChatBubbleBottomCenterText,
+  HiOutlineCheckCircle,
+  HiOutlineClipboardDocumentList,
+  HiOutlineInbox,
+  HiOutlinePencilSquare,
+  HiOutlinePlusCircle,
+  HiOutlineTrash,
+} from "react-icons/hi2";
 
 type SurveyDetail = {
   role: "admin" | "user";
@@ -232,26 +243,32 @@ export default function SurveyDetailPage() {
 
   return (
     <main className="page">
-      <h1 className="text-lg font-semibold">{detail.survey.title}</h1>
+      <h1 className="flex items-center gap-2 text-lg font-semibold">
+        <HiOutlineClipboardDocumentList className="text-xl" />
+        {detail.survey.title}
+      </h1>
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/surveys">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
         <span className="chip">{statusLabel(detail)}</span>
         {detail.role === "admin" && detail.survey.status === "draft" ? (
           <>
             <Link
-              className="btn btn-ghost"
+              className="btn btn-ghost inline-flex items-center gap-2"
               href={`/dashboard/surveys/${detail.survey.id}/edit`}
             >
+              <HiOutlinePencilSquare className="text-base" />
               Edit
             </Link>
             <button
-              className="btn btn-ghost text-[color:var(--accent-strong)]"
+              className="btn btn-ghost text-[color:var(--accent-strong)] inline-flex items-center gap-2"
               type="button"
               onClick={deleteSurvey}
               disabled={deleting}
             >
+              <HiOutlineTrash className="text-base" />
               {deleting ? "Deleting..." : "Delete"}
             </button>
           </>
@@ -273,7 +290,10 @@ export default function SurveyDetailPage() {
         <p className="text-sm">回答権がありません</p>
       ) : detail.canAnswer ? (
         <section className="section">
-          <h2 className="section-title">Response</h2>
+          <h2 className="section-title flex items-center gap-2">
+            <HiOutlineChatBubbleBottomCenterText className="text-base" />
+            Response
+          </h2>
           {detail.questions.map((question, index) => (
             <div key={question.id} className="card space-y-2">
               <div className="font-semibold text-sm">
@@ -335,7 +355,10 @@ export default function SurveyDetailPage() {
                     onClick={() => addOption(question.id)}
                     disabled={saving}
                   >
-                    Add
+                    <span className="inline-flex items-center gap-2">
+                      <HiOutlinePlusCircle className="text-base" />
+                      Add
+                    </span>
                   </button>
                 </div>
               ) : null}
@@ -347,7 +370,14 @@ export default function SurveyDetailPage() {
             onClick={submit}
             disabled={saving}
           >
-            {saving ? "Saving..." : detail.response ? "Update response" : "Submit response"}
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineCheckCircle className="text-base" />
+              {saving
+                ? "Saving..."
+                : detail.response
+                  ? "Update response"
+                  : "Submit response"}
+            </span>
           </button>
         </section>
       ) : (
@@ -357,7 +387,10 @@ export default function SurveyDetailPage() {
       )}
 
       <section className="section">
-        <h2 className="section-title">Results</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineChartBar className="text-base" />
+          Results
+        </h2>
         <p className="text-sm">回答率: {responseSummary}</p>
         {!detail.survey.is_anonymous ? (
           <h3 className="font-semibold">選択肢ごとの回答者</h3>
@@ -407,7 +440,10 @@ export default function SurveyDetailPage() {
           </div>
         ))}
         <div className="card-soft space-y-2">
-          <h3 className="font-semibold text-sm">未回答者</h3>
+          <h3 className="flex items-center gap-2 font-semibold text-sm">
+            <HiOutlineInbox className="text-base" />
+            未回答者
+          </h3>
           {detail.results.unresponded.length === 0 ? (
             <p className="text-sm">no unresponded accounts</p>
           ) : (
