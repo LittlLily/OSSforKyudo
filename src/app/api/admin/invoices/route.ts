@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logInvoiceAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -210,6 +211,19 @@ export async function GET(request: Request) {
           : null,
     }));
 
+    await Promise.all(
+      rawInvoices.map((invoice) =>
+        logInvoiceAction(adminClient, {
+          action: "請求閲覧",
+          operatorId: auth.userId,
+          subjectUserId: invoice.account_id ?? null,
+          invoiceId: invoice.id ?? null,
+          targetLabel: invoice.title ?? "請求",
+          detail: invoice.description ?? null,
+        })
+      )
+    );
+
     return NextResponse.json({ invoices });
   } catch (error) {
     return NextResponse.json(
@@ -275,10 +289,27 @@ export async function POST(request: Request) {
       status: "pending",
     }));
 
-    const insertResponse = await adminClient.from("invoices").insert(rows);
+    const insertResponse = await adminClient
+      .from("invoices")
+      .insert(rows)
+      .select("id, account_id, title, description");
     if (insertResponse.error) {
       throw insertResponse.error;
     }
+
+    const createdRows = insertResponse.data ?? [];
+    await Promise.all(
+      createdRows.map((invoice) =>
+        logInvoiceAction(adminClient, {
+          action: "請求作成",
+          operatorId: auth.userId,
+          subjectUserId: invoice.account_id ?? null,
+          invoiceId: invoice.id ?? null,
+          targetLabel: invoice.title ?? "請求",
+          detail: invoice.description ?? null,
+        })
+      )
+    );
 
     return NextResponse.json({ created: rows.length });
   } catch (error) {

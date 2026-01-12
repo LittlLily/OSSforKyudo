@@ -26,6 +26,11 @@ const navItems: NavItem[] = [
     href: "/dashboard/surveys",
     match: (path) => path.startsWith("/dashboard/surveys"),
   },
+  {
+    label: "Logs",
+    href: "/dashboard/logs",
+    match: (path) => path.startsWith("/dashboard/logs"),
+  },
 ];
 
 export default function SidebarNav() {

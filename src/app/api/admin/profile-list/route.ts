@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logAccountAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -20,7 +21,7 @@ async function requireUser() {
 
   const role =
     (data.user.app_metadata?.role as "admin" | "user") ?? "user";
-  return { ok: true, role };
+  return { ok: true, role, userId: data.user.id };
 }
 
 function getAdminClient() {
@@ -149,6 +150,12 @@ export async function GET(request: Request) {
         ryuha: profile.ryuha ?? null,
         position: profile.position ?? null,
       }));
+      await logAccountAction(adminClient, {
+        action: "プロフィール一覧取得",
+        operatorId: auth.userId,
+        subjectUserId: auth.userId,
+        targetLabel: "一覧",
+      });
       return NextResponse.json({ users: limited });
     }
 
@@ -175,6 +182,13 @@ export async function GET(request: Request) {
           position: profile?.position ?? null,
         };
       });
+
+    await logAccountAction(adminClient, {
+      action: "プロフィール一覧取得",
+      operatorId: auth.userId,
+      subjectUserId: auth.userId,
+      targetLabel: "一覧",
+    });
 
     return NextResponse.json({ users: list });
   } catch (error) {
