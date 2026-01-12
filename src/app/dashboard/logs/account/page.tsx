@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineClipboardDocumentList,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -129,7 +134,10 @@ export default function AccountLogsPage() {
     <main className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Account Logs</h1>
+          <h1 className="page-title flex items-center gap-3">
+            <HiOutlineUserCircle className="text-2xl" />
+            Account Logs
+          </h1>
           <p className="page-subtitle">
             {auth.role === "admin"
               ? "全ユーザーのアカウント操作ログ"
@@ -137,14 +145,18 @@ export default function AccountLogsPage() {
           </p>
         </div>
         <div className="page-actions">
-          <Link className="btn btn-ghost" href="/dashboard/logs">
+          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/logs">
+            <HiOutlineArrowLeft className="text-base" />
             Back
           </Link>
         </div>
       </div>
 
       <section className="section">
-        <h2 className="section-title">アカウントログ</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineClipboardDocumentList className="text-base" />
+          アカウントログ
+        </h2>
         <div className="table-wrap border border-[color:var(--border)]">
           <table>
             <thead>

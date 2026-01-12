@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowDownTray,
+  HiOutlineArrowLeft,
+  HiOutlineCheckCircle,
+  HiOutlinePencilSquare,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -194,7 +200,8 @@ export default function AdminProfileEditPage() {
     return (
       <main className="page">
         <p className="text-sm">forbidden</p>
-        <Link className="btn btn-ghost" href="/">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/">
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
       </main>
@@ -221,12 +228,18 @@ export default function AdminProfileEditPage() {
           onClick={handleLoad}
           disabled={loading}
         >
-          {loading ? "Loading..." : "Load profile"}
+          <span className="inline-flex items-center gap-2">
+            <HiOutlineArrowDownTray className="text-base" />
+            {loading ? "Loading..." : "Load profile"}
+          </span>
         </button>
       </div>
 
       <div className="card space-y-4">
-        <h2 className="section-title">Profile edit</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlinePencilSquare className="text-base" />
+          Profile edit
+        </h2>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
             display_name
@@ -336,12 +349,16 @@ export default function AdminProfileEditPage() {
           onClick={handleSave}
           disabled={saving || !loadedId}
         >
-          {saving ? "Saving..." : "Save"}
+          <span className="inline-flex items-center gap-2">
+            <HiOutlineCheckCircle className="text-base" />
+            {saving ? "Saving..." : "Save"}
+          </span>
         </button>
         {message ? <p className="text-sm">{message}</p> : null}
       </div>
 
-      <Link className="btn btn-ghost" href="/dashboard/profile">
+      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+        <HiOutlineArrowLeft className="text-base" />
         Back
       </Link>
     </main>

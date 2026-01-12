@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineArrowPath,
+  HiOutlineMagnifyingGlass,
+  HiOutlineTrash,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -244,7 +250,8 @@ export default function AdminProfileDeletePage() {
     return (
       <main className="page">
         <p className="text-sm">forbidden</p>
-        <Link className="btn btn-ghost" href="/dashboard/profile">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
       </main>
@@ -254,7 +261,10 @@ export default function AdminProfileDeletePage() {
   return (
     <main className="page">
       <div className="card space-y-4">
-        <h2 className="section-title">Search</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineMagnifyingGlass className="text-base" />
+          Search
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
@@ -348,7 +358,10 @@ export default function AdminProfileDeletePage() {
             onClick={handleSearch}
             disabled={list.status === "loading"}
           >
-            Search
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineMagnifyingGlass className="text-base" />
+              Search
+            </span>
           </button>
           <button
             className="btn btn-ghost"
@@ -356,7 +369,10 @@ export default function AdminProfileDeletePage() {
             onClick={handleReset}
             disabled={list.status === "loading"}
           >
-            Reset
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineArrowPath className="text-base" />
+              Reset
+            </span>
           </button>
         </div>
         {message ? <p className="text-sm">{message}</p> : null}
@@ -398,7 +414,10 @@ export default function AdminProfileDeletePage() {
                     onClick={() => void handleDelete(user.id)}
                     disabled={deletingId === user.id}
                   >
-                    {deletingId === user.id ? "Deleting..." : "Delete"}
+                    <span className="inline-flex items-center gap-2">
+                      <HiOutlineTrash className="text-base" />
+                      {deletingId === user.id ? "Deleting..." : "Delete"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -409,7 +428,8 @@ export default function AdminProfileDeletePage() {
         <p className="text-sm">ready</p>
       )}
 
-      <Link className="btn btn-ghost" href="/dashboard/profile">
+      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+        <HiOutlineArrowLeft className="text-base" />
         Back
       </Link>
     </main>

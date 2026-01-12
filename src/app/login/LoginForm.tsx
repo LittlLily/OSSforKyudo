@@ -2,6 +2,11 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import {
+  HiOutlineArrowRightCircle,
+  HiOutlineAtSymbol,
+  HiOutlineKey,
+} from "react-icons/hi2";
 import { signIn } from "@/app/actions/auth";
 
 type AuthState = { message: string };
@@ -12,7 +17,10 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <button className="btn btn-primary" type="submit" disabled={pending}>
-      {pending ? "Signing in..." : "Sign in"}
+      <span className="inline-flex items-center gap-2">
+        <HiOutlineArrowRightCircle className="text-base" />
+        {pending ? "Signing in..." : "Sign in"}
+      </span>
     </button>
   );
 }
@@ -25,7 +33,8 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
       <input type="hidden" name="next" value={nextPath} />
 
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineAtSymbol className="text-base" />
           Email
         </span>
         <input
@@ -36,7 +45,8 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
       </label>
 
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineKey className="text-base" />
           Password
         </span>
         <input

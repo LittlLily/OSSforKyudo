@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineArrowPath,
+  HiOutlineMagnifyingGlass,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -209,7 +214,10 @@ export default function AdminProfileListPage() {
   return (
     <main className="page">
       <div className="card space-y-4">
-        <h2 className="section-title">Search</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineMagnifyingGlass className="text-base" />
+          Search
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
@@ -299,7 +307,10 @@ export default function AdminProfileListPage() {
             onClick={handleSearch}
             disabled={list.status === "loading"}
           >
-            Search
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineMagnifyingGlass className="text-base" />
+              Search
+            </span>
           </button>
           <button
             className="btn btn-ghost"
@@ -307,7 +318,10 @@ export default function AdminProfileListPage() {
             onClick={handleReset}
             disabled={list.status === "loading"}
           >
-            Reset
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineArrowPath className="text-base" />
+              Reset
+            </span>
           </button>
         </div>
       </div>
@@ -351,7 +365,8 @@ export default function AdminProfileListPage() {
         <p className="text-sm">ready</p>
       )}
 
-      <Link className="btn btn-ghost" href="/dashboard/profile">
+      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+        <HiOutlineArrowLeft className="text-base" />
         Back
       </Link>
     </main>

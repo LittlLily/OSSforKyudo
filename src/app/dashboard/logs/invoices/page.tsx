@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineClipboardDocumentList,
+  HiOutlineReceiptRefund,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -130,7 +135,10 @@ export default function InvoiceLogsPage() {
     <main className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Invoice Logs</h1>
+          <h1 className="page-title flex items-center gap-3">
+            <HiOutlineReceiptRefund className="text-2xl" />
+            Invoice Logs
+          </h1>
           <p className="page-subtitle">
             {auth.role === "admin"
               ? "全請求の会計ログ"
@@ -138,14 +146,18 @@ export default function InvoiceLogsPage() {
           </p>
         </div>
         <div className="page-actions">
-          <Link className="btn btn-ghost" href="/dashboard/logs">
+          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/logs">
+            <HiOutlineArrowLeft className="text-base" />
             Back
           </Link>
         </div>
       </div>
 
       <section className="section">
-        <h2 className="section-title">会計ログ</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineClipboardDocumentList className="text-base" />
+          会計ログ
+        </h2>
         <div className="table-wrap border border-[color:var(--border)]">
           <table>
             <thead>

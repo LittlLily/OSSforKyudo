@@ -3,6 +3,18 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineCheckCircle,
+  HiOutlineMagnifyingGlass,
+  HiOutlineMinusCircle,
+  HiOutlinePlusCircle,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineSquares2X2,
+  HiOutlineTrash,
+  HiOutlineUserGroup,
+  HiOutlineUserPlus,
+} from "react-icons/hi2";
 
 type AuthState =
   | { status: "loading" }
@@ -380,7 +392,8 @@ export default function SurveyEditPage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost" href={`/dashboard/surveys/${params.id}`}>
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href={`/dashboard/surveys/${params.id}`}>
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
       </div>
@@ -463,7 +476,10 @@ export default function SurveyEditPage() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">Targets</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineUserGroup className="text-base" />
+          Targets
+        </h2>
         <div className="card space-y-3">
           <div className="grid gap-2 sm:grid-cols-2">
             <input
@@ -504,7 +520,10 @@ export default function SurveyEditPage() {
               onClick={searchProfiles}
               disabled={searching}
             >
-              {searching ? "Searching..." : "Search"}
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineMagnifyingGlass className="text-base" />
+                {searching ? "Searching..." : "Search"}
+              </span>
             </button>
             <button
               className="btn btn-ghost"
@@ -512,7 +531,10 @@ export default function SurveyEditPage() {
               onClick={toggleSelectAll}
               disabled={searchResults.length === 0}
             >
-              Select all
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineSquares2X2 className="text-base" />
+                Select all
+              </span>
             </button>
             <button
               className="btn btn-ghost"
@@ -520,7 +542,10 @@ export default function SurveyEditPage() {
               onClick={addSelectedAccounts}
               disabled={searchSelected.length === 0}
             >
-              Add selected
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineUserPlus className="text-base" />
+                Add selected
+              </span>
             </button>
           </div>
           <div className="space-y-2">
@@ -565,7 +590,10 @@ export default function SurveyEditPage() {
                     type="button"
                     onClick={() => removeSelectedAccount(user.id)}
                   >
-                    Remove
+                    <span className="inline-flex items-center gap-2">
+                      <HiOutlineTrash className="text-base" />
+                      Remove
+                    </span>
                   </button>
                 </li>
               ))}
@@ -579,13 +607,19 @@ export default function SurveyEditPage() {
 
       <section className="section">
         <div className="inline-list">
-          <h2 className="section-title">Questions</h2>
+          <h2 className="section-title flex items-center gap-2">
+            <HiOutlineQuestionMarkCircle className="text-base" />
+            Questions
+          </h2>
           <button
             className="btn btn-ghost"
             type="button"
             onClick={addQuestion}
           >
-            Add question
+            <span className="inline-flex items-center gap-2">
+              <HiOutlinePlusCircle className="text-base" />
+              Add question
+            </span>
           </button>
         </div>
         {errors.questions ? (
@@ -625,7 +659,10 @@ export default function SurveyEditPage() {
                 onClick={() => removeQuestion(index)}
                 disabled={questions.length === 1}
               >
-                Remove question
+                <span className="inline-flex items-center gap-2">
+                  <HiOutlineTrash className="text-base" />
+                  Remove question
+                </span>
               </button>
             </div>
             <input
@@ -652,7 +689,10 @@ export default function SurveyEditPage() {
                     type="button"
                     onClick={() => removeOption(index, optionIndex)}
                   >
-                    Remove
+                    <span className="inline-flex items-center gap-2">
+                      <HiOutlineMinusCircle className="text-base" />
+                      Remove
+                    </span>
                   </button>
                 </div>
               ))}
@@ -661,7 +701,10 @@ export default function SurveyEditPage() {
                 type="button"
                 onClick={() => addOption(index)}
               >
-                Add option
+                <span className="inline-flex items-center gap-2">
+                  <HiOutlinePlusCircle className="text-base" />
+                  Add option
+                </span>
               </button>
             </div>
           </div>
@@ -675,7 +718,10 @@ export default function SurveyEditPage() {
           onClick={submit}
           disabled={loading}
         >
-          {loading ? "Saving..." : "Update survey"}
+          <span className="inline-flex items-center gap-2">
+            <HiOutlineCheckCircle className="text-base" />
+            {loading ? "Saving..." : "Update survey"}
+          </span>
         </button>
       </div>
     </main>

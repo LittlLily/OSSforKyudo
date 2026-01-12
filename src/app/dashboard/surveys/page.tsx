@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineChartBar,
+  HiOutlineCheckCircle,
+  HiOutlineClock,
+  HiOutlinePlusCircle,
+} from "react-icons/hi2";
 
 type Survey = {
   id: string;
@@ -94,11 +100,13 @@ export default function SurveysPage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-primary" href="/dashboard/surveys/analytics">
+        <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/analytics">
+          <HiOutlineChartBar className="text-base" />
           Analytics
         </Link>
         {role === "admin" ? (
-          <Link className="btn btn-primary" href="/dashboard/surveys/create">
+          <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/create">
+            <HiOutlinePlusCircle className="text-base" />
             Create survey
           </Link>
         ) : null}
@@ -107,7 +115,10 @@ export default function SurveysPage() {
       {message ? <p className="text-sm">error: {message}</p> : null}
 
       <section className="section">
-        <h2 className="section-title">Pending Responses</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineClock className="text-base" />
+          Pending Responses
+        </h2>
         {pendingSurveys.length === 0 ? (
           <p className="text-sm">no pending surveys</p>
         ) : (
@@ -137,7 +148,10 @@ export default function SurveysPage() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">Completed</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineCheckCircle className="text-base" />
+          Completed
+        </h2>
         {completedSurveys.length === 0 ? (
           <p className="text-sm">no completed surveys</p>
         ) : (

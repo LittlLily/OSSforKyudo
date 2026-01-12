@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { HiOutlineArrowLeft } from "react-icons/hi2";
 import AdminCreateUserForm from "../../AdminCreateUserForm";
 
 type AuthState =
@@ -55,7 +56,8 @@ export default function AdminProfileCreatePage() {
     return (
       <main className="page">
         <p className="text-sm">forbidden</p>
-        <Link className="btn btn-ghost" href="/dashboard/profile">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
       </main>
@@ -65,7 +67,8 @@ export default function AdminProfileCreatePage() {
   return (
     <main className="page">
       <AdminCreateUserForm />
-      <Link className="btn btn-ghost" href="/dashboard/profile">
+      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+        <HiOutlineArrowLeft className="text-base" />
         Back
       </Link>
     </main>

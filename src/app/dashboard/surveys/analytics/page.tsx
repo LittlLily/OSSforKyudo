@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineArrowDownTray,
+  HiOutlineChartBarSquare,
+} from "react-icons/hi2";
 
 type AnalyticsRow = {
   account_id: string;
@@ -80,7 +85,8 @@ export default function SurveyAnalyticsPage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/surveys">
+        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
+          <HiOutlineArrowLeft className="text-base" />
           Back
         </Link>
       </div>
@@ -115,14 +121,20 @@ export default function SurveyAnalyticsPage() {
             onClick={load}
             disabled={loading}
           >
-            {loading ? "Loading..." : "Load"}
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineArrowDownTray className="text-base" />
+              {loading ? "Loading..." : "Load"}
+            </span>
           </button>
         </div>
         {message ? <p className="text-sm">error: {message}</p> : null}
       </section>
 
       <section className="section">
-        <h2 className="section-title">回答率一覧</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineChartBarSquare className="text-base" />
+          回答率一覧
+        </h2>
         {sortedRows.length === 0 ? (
           <p className="text-sm">no data</p>
         ) : (
