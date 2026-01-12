@@ -26,7 +26,7 @@ const emptySearch: SearchForm = {
   name: "",
   length: "",
   strength: "",
-  status: "",
+  status: "available",
 };
 
 const lengthOptions = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;

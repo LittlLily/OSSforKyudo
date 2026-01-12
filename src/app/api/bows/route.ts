@@ -66,6 +66,7 @@ export async function GET(request: Request) {
   const query = url.searchParams.get("q")?.trim() ?? "";
   const bowNumber = url.searchParams.get("bow_number")?.trim() ?? "";
   const name = url.searchParams.get("name")?.trim() ?? "";
+  const borrower = url.searchParams.get("borrower")?.trim() ?? "";
   const lengthParam = url.searchParams.get("length")?.trim() ?? "";
   const lengthFilter = normalizeLength(lengthParam) ?? "";
   const strengthParam = url.searchParams.get("strength")?.trim() ?? "";
@@ -82,6 +83,10 @@ export async function GET(request: Request) {
     bowsQuery = bowsQuery.not("borrower_profile_id", "is", null);
   } else if (status === "available") {
     bowsQuery = bowsQuery.is("borrower_profile_id", null);
+  }
+
+  if (borrower === "me") {
+    bowsQuery = bowsQuery.eq("borrower_profile_id", auth.userId);
   }
 
   if (bowNumber) {

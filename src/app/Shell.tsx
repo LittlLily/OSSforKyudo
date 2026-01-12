@@ -146,12 +146,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-        <h1 className="text-lg font-semibold uppercase tracking-[0.18em]">
-          Kyudo Ops
-        </h1>
-        <p className="mt-2 text-sm text-[color:var(--muted)]">
-          Enterprise Console
-        </p>
+            <h1 className="text-2xl font-semibold uppercase tracking-[0.08em] font-hiragino">
+              せいしゃ
+            </h1>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">
+              kyudo System
+            </p>
           </div>
           <button
             className="btn btn-ghost text-[10px] uppercase tracking-[0.2em] min-[769px]:hidden"
@@ -179,11 +179,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               Menu
             </button>
             <div className="min-[769px]:hidden">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">
-                Kyudo Ops
+              <p className="text-sm font-semibold uppercase tracking-[0.08em] text-[color:var(--muted)] font-hiragino">
+                せいしゃ
               </p>
               <p className="text-xs font-semibold tracking-[0.16em]">
-                Enterprise Console
+                kyudo System
               </p>
             </div>
           </div>
