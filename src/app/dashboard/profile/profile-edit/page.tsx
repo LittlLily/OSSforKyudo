@@ -175,34 +175,22 @@ export default function AdminProfileEditPage() {
   };
 
   if (auth.status === "loading") {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   if (auth.status === "error") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile edit</h1>
-        <p className="mt-4">error: {auth.message}</p>
+      <main className="page">
+        <p className="text-sm">error: {auth.message}</p>
       </main>
     );
   }
 
   if (auth.role !== "admin") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile edit</h1>
-        <p className="mt-4">forbidden</p>
-        <Link className="mt-4 inline-block underline" href="/">
+      <main className="page">
+        <p className="text-sm">forbidden</p>
+        <Link className="btn btn-ghost" href="/">
           Back
         </Link>
       </main>
@@ -210,27 +198,21 @@ export default function AdminProfileEditPage() {
   }
 
   return (
-    <main className="p-6 max-w-xl">
-      <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/">
-          Dashboard
-        </Link>
-      </div>
-      <h1 className="text-2xl font-bold">Profile edit</h1>
-      <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
-
-      <div className="mt-6 border rounded p-4">
-        <label className="block">
-          <span className="text-sm">User email</span>
+    <main className="page">
+      <div className="card space-y-4">
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            User email
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={targetEmail}
             onChange={(event) => setTargetEmail(event.target.value)}
             placeholder="email@example.com"
           />
         </label>
         <button
-          className="mt-3 border rounded px-4 py-2"
+          className="btn btn-primary"
           type="button"
           onClick={handleLoad}
           disabled={loading}
@@ -239,44 +221,54 @@ export default function AdminProfileEditPage() {
         </button>
       </div>
 
-      <div className="mt-6 border rounded p-4">
-        <h2 className="text-lg font-semibold">Profile edit</h2>
-        <label className="block mt-4">
-          <span className="text-sm">display_name</span>
+      <div className="card space-y-4">
+        <h2 className="section-title">Profile edit</h2>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            display_name
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.display_name}
             onChange={(event) => setField("display_name", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">student_number</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            student_number
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.student_number}
             onChange={(event) => setField("student_number", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">name_kana</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            name_kana
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.name_kana}
             onChange={(event) => setField("name_kana", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">generation</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            generation
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.generation}
             onChange={(event) => setField("generation", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">gender</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            gender
+          </span>
           <select
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.gender}
             onChange={(event) =>
               setField("gender", event.target.value as ProfileForm["gender"])
@@ -287,47 +279,51 @@ export default function AdminProfileEditPage() {
             <option value="female">female</option>
           </select>
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">department</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            department
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.department}
             onChange={(event) => setField("department", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">ryuha</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            ryuha
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.ryuha}
             onChange={(event) => setField("ryuha", event.target.value)}
           />
         </label>
-        <label className="block mt-4">
-          <span className="text-sm">position</span>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            position
+          </span>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={form.position}
             onChange={(event) => setField("position", event.target.value)}
           />
         </label>
 
         <button
-          className="mt-4 border rounded px-4 py-2"
+          className="btn btn-primary"
           type="button"
           onClick={handleSave}
           disabled={saving || !loadedId}
         >
           {saving ? "Saving..." : "Save"}
         </button>
-        {message ? <p className="mt-2 text-sm">{message}</p> : null}
+        {message ? <p className="text-sm">{message}</p> : null}
       </div>
 
-      <div className="mt-6">
-        <Link className="underline" href="/dashboard/profile">
-          Back
-        </Link>
-      </div>
+      <Link className="btn btn-ghost" href="/dashboard/profile">
+        Back
+      </Link>
     </main>
   );
 }

@@ -195,70 +195,64 @@ export default function AdminProfileListPage() {
   }, [form, list.status]);
 
   if (auth.status === "loading") {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   if (auth.status === "error") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile list</h1>
-        <p className="mt-4">error: {auth.message}</p>
+      <main className="page">
+        <p className="text-sm">error: {auth.message}</p>
       </main>
     );
   }
 
   return (
-    <main className="p-6">
-      <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/">
-          Dashboard
-        </Link>
-      </div>
-      <h1 className="text-2xl font-bold">Profile list</h1>
-      <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
-
-      <div className="mt-6 border rounded p-4">
-        <h2 className="text-lg font-semibold">Search</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm">display_name</span>
+    <main className="page">
+      <div className="card space-y-4">
+        <h2 className="section-title">Search</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              display_name
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.display_name}
               onChange={(event) =>
                 updateField("display_name", event.target.value)
               }
             />
           </label>
-          <label className="block">
-            <span className="text-sm">student_number</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              student_number
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.student_number}
               onChange={(event) =>
                 updateField("student_number", event.target.value)
               }
             />
           </label>
-          <label className="block">
-            <span className="text-sm">generation</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              generation
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.generation}
               onChange={(event) =>
                 updateField("generation", event.target.value)
               }
             />
           </label>
-          <label className="block">
-            <span className="text-sm">gender</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              gender
+            </span>
             <select
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.gender}
               onChange={(event) => updateField("gender", event.target.value)}
             >
@@ -267,34 +261,40 @@ export default function AdminProfileListPage() {
               <option value="female">female</option>
             </select>
           </label>
-          <label className="block">
-            <span className="text-sm">department</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              department
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.department}
               onChange={(event) => updateField("department", event.target.value)}
             />
           </label>
-          <label className="block">
-            <span className="text-sm">ryuha</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              ryuha
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.ryuha}
               onChange={(event) => updateField("ryuha", event.target.value)}
             />
           </label>
-          <label className="block">
-            <span className="text-sm">position</span>
+          <label className="field">
+            <span className="text-sm font-semibold text-[color:var(--muted)]">
+              position
+            </span>
             <input
-              className="mt-1 w-full border rounded px-3 py-2"
+              className="w-full"
               value={form.position}
               onChange={(event) => updateField("position", event.target.value)}
             />
           </label>
         </div>
-        <div className="mt-4 flex gap-3">
+        <div className="inline-list">
           <button
-            className="border rounded px-4 py-2"
+            className="btn btn-primary"
             type="button"
             onClick={handleSearch}
             disabled={list.status === "loading"}
@@ -302,7 +302,7 @@ export default function AdminProfileListPage() {
             Search
           </button>
           <button
-            className="border rounded px-4 py-2"
+            className="btn btn-ghost"
             type="button"
             onClick={handleReset}
             disabled={list.status === "loading"}
@@ -313,16 +313,16 @@ export default function AdminProfileListPage() {
       </div>
 
       {list.status === "loading" ? (
-        <p className="mt-4">loading...</p>
+        <p className="text-sm">loading...</p>
       ) : list.status === "error" ? (
-        <p className="mt-4">error: {list.message}</p>
+        <p className="text-sm">error: {list.message}</p>
       ) : list.status === "loaded" ? (
-        <div className="mt-6 space-y-4">
+        <div className="space-y-4">
           {sortedUsers.map((user) => {
             const fields =
               auth.role === "admin" ? adminFields : limitedFields;
             return (
-              <div key={user.id} className="border rounded p-4">
+              <div key={user.id} className="card">
                 {auth.role === "admin" ? (
                   <div className="text-sm">
                     <p>
@@ -348,14 +348,12 @@ export default function AdminProfileListPage() {
           })}
         </div>
       ) : (
-        <p className="mt-4">ready</p>
+        <p className="text-sm">ready</p>
       )}
 
-      <div className="mt-6">
-        <Link className="underline" href="/dashboard/profile">
-          Back
-        </Link>
-      </div>
+      <Link className="btn btn-ghost" href="/dashboard/profile">
+        Back
+      </Link>
     </main>
   );
 }

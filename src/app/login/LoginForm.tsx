@@ -11,7 +11,7 @@ const initialState: AuthState = { message: "" };
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button className="border rounded px-4 py-2" type="submit" disabled={pending}>
+    <button className="btn btn-primary" type="submit" disabled={pending}>
       {pending ? "Signing in..." : "Sign in"}
     </button>
   );
@@ -21,29 +21,33 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
   const [state, formAction] = useActionState(signIn, initialState);
 
   return (
-    <form action={formAction} className="mt-6">
+    <form action={formAction} className="space-y-6">
       <input type="hidden" name="next" value={nextPath} />
 
-      <label className="block mt-6">
-        <span className="text-sm">Email</span>
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Email
+        </span>
         <input
-          className="mt-1 w-full border rounded px-3 py-2"
+          className="w-full"
           name="email"
           autoComplete="email"
         />
       </label>
 
-      <label className="block mt-4">
-        <span className="text-sm">Password</span>
+      <label className="field">
+        <span className="text-sm font-semibold text-[color:var(--muted)]">
+          Password
+        </span>
         <input
-          className="mt-1 w-full border rounded px-3 py-2"
+          className="w-full"
           type="password"
           name="password"
           autoComplete="current-password"
         />
       </label>
 
-      <div className="mt-6 flex gap-3">
+      <div className="inline-list">
         <SubmitButton />
       </div>
 
