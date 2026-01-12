@@ -73,15 +73,15 @@ export default function SidebarFooter() {
     <div className="space-y-3 text-sm">
       <p className="flex items-center gap-2">
         <HiOutlineUserCircle className="text-base" />
-        name: {state.displayName ?? "てすとさん"}
+        {state.displayName ?? "てすとさん"}
       </p>
       <p className="flex items-center gap-2">
         <HiOutlineIdentification className="text-base" />
-        student number: {state.studentNumber ?? "-"}
+        学籍番号: {state.studentNumber ?? "-"}
       </p>
       <p className="flex items-center gap-2">
         <HiOutlineShieldCheck className="text-base" />
-        role: {state.role}
+        権限: {state.role}
       </p>
       <form action={signOut}>
         <button className="btn btn-ghost inline-flex items-center gap-2" type="submit">
