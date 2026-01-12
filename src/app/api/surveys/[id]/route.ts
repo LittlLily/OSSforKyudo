@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   matchesAnyGroup,
   resolveAccountIdsForTargetGroups,
+  resolveSurveyTargetAccountIds,
   type TargetCondition,
   type TargetGroup,
 } from "@/lib/surveys/targets";
@@ -190,7 +191,14 @@ export async function GET(
     if (profileResponse.error) throw profileResponse.error;
 
     const profile = profileResponse.data ?? {};
-    const eligible = matchesAnyGroup(profile, targetGroups);
+    const targetAccountIds = await resolveSurveyTargetAccountIds(
+      adminClient,
+      survey.id
+    );
+    const hasTargets = targetAccountIds.length > 0;
+    const eligible = hasTargets
+      ? targetAccountIds.includes(auth.userId)
+      : matchesAnyGroup(profile, targetGroups);
     const availability = computeAvailability(survey, Date.now());
     const canAnswer =
       survey.status === "open" && availability === "open" && eligible;
@@ -222,7 +230,16 @@ export async function GET(
     let eligibleAccountIds: string[] = [];
     let eligibleCount = 0;
     let respondedAccountIds = new Set<string>();
-    if (targetGroups.length === 0) {
+    if (hasTargets) {
+      eligibleAccountIds = targetAccountIds;
+      eligibleCount = eligibleAccountIds.length;
+    } else if (targetGroups.length > 0) {
+      eligibleAccountIds = await resolveAccountIdsForTargetGroups(
+        adminClient,
+        targetGroups
+      );
+      eligibleCount = eligibleAccountIds.length;
+    } else {
       const profilesResponse = await adminClient
         .from("profiles")
         .select("id", { count: "exact", head: false });
@@ -234,12 +251,6 @@ export async function GET(
         typeof profilesResponse.count === "number"
           ? profilesResponse.count
           : eligibleAccountIds.length;
-    } else {
-      eligibleAccountIds = await resolveAccountIdsForTargetGroups(
-        adminClient,
-        targetGroups
-      );
-      eligibleCount = eligibleAccountIds.length;
     }
 
     const responseRows =
@@ -343,6 +354,7 @@ export async function GET(
     }
 
     const payload = {
+      role: auth.role,
       survey,
       availability,
       eligible,

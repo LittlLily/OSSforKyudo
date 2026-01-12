@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { TargetField, TargetOp } from "@/lib/surveys/targets";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -58,17 +57,6 @@ type QuestionPayload = {
   options?: string[];
 };
 
-type TargetConditionPayload = {
-  field?: TargetField;
-  value?: string;
-};
-
-type TargetGroupPayload = {
-  conditions?: TargetConditionPayload[];
-};
-
-const opForField = (field: TargetField): TargetOp =>
-  field === "display_name" || field === "student_number" ? "ilike" : "eq";
 
 export async function POST(request: Request) {
   const auth = await requireUser();
@@ -97,8 +85,8 @@ export async function POST(request: Request) {
       opens_at?: string | null;
       closes_at?: string | null;
       is_anonymous?: boolean;
+      accountIds?: string[];
       questions?: QuestionPayload[];
-      targetGroups?: TargetGroupPayload[];
     };
 
     const title = body.title?.trim();
@@ -211,64 +199,25 @@ export async function POST(request: Request) {
       .insert(optionRows);
     if (insertOptions.error) throw insertOptions.error;
 
-    const targetGroups = Array.isArray(body.targetGroups)
-      ? body.targetGroups
+    const accountIds = Array.isArray(body.accountIds)
+      ? body.accountIds.map((id) => id.trim()).filter(Boolean)
       : [];
-    const groupRows = targetGroups.map((group, index) => ({
-      survey_id: surveyId,
-      position: index,
-      conditions: Array.isArray(group.conditions)
-        ? group.conditions
-            .map((condition) => ({
-              field: condition.field,
-              value: condition.value?.trim(),
-            }))
-            .filter(
-              (condition): condition is { field: TargetField; value: string } =>
-                Boolean(condition.field && condition.value)
-            )
-        : [],
-    }));
-
-    const filteredGroups = groupRows.filter(
-      (group) => group.conditions.length > 0
-    );
-
-    if (filteredGroups.length > 0) {
-      const insertedGroups = await adminClient
-        .from("survey_target_groups")
-        .insert(
-          filteredGroups.map((group) => ({
-            survey_id: group.survey_id,
-            position: group.position,
-          }))
-        )
-        .select("id, position");
-      if (insertedGroups.error) throw insertedGroups.error;
-
-      const groupIdByPosition = new Map<number, string>();
-      for (const row of insertedGroups.data ?? []) {
-        groupIdByPosition.set(row.position as number, row.id as string);
-      }
-
-      const conditionRows = filteredGroups.flatMap((group) => {
-        const groupId = groupIdByPosition.get(group.position);
-        if (!groupId) return [];
-        return group.conditions.map((condition) => ({
-          group_id: groupId,
-          field: condition.field,
-          op: opForField(condition.field),
-          value: condition.value,
-        }));
-      });
-
-      if (conditionRows.length > 0) {
-        const insertConditions = await adminClient
-          .from("survey_target_conditions")
-          .insert(conditionRows);
-        if (insertConditions.error) throw insertConditions.error;
-      }
+    if (accountIds.length === 0) {
+      return NextResponse.json(
+        { error: "accountIds required" },
+        { status: 400 }
+      );
     }
+
+    const uniqueAccountIds = Array.from(new Set(accountIds));
+    const targetRows = uniqueAccountIds.map((accountId) => ({
+      survey_id: surveyId,
+      account_id: accountId,
+    }));
+    const insertTargets = await adminClient
+      .from("survey_targets")
+      .insert(targetRows);
+    if (insertTargets.error) throw insertTargets.error;
 
     return NextResponse.json({ id: surveyId });
   } catch (error) {

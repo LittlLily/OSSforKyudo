@@ -160,6 +160,24 @@ export async function GET() {
       }
     }
 
+    const targetResponse = surveyIds.length
+      ? await adminClient
+          .from("survey_targets")
+          .select("survey_id, account_id")
+          .in("survey_id", surveyIds)
+      : { data: [], error: null };
+    if (targetResponse.error) throw targetResponse.error;
+
+    const targetSurveyIds = new Set<string>();
+    const targetedBySurvey = new Set<string>();
+    for (const row of targetResponse.data ?? []) {
+      const surveyId = row.survey_id as string;
+      targetSurveyIds.add(surveyId);
+      if (row.account_id === auth.userId) {
+        targetedBySurvey.add(surveyId);
+      }
+    }
+
     const responseResponse = surveyIds.length
       ? await adminClient
           .from("survey_responses")
@@ -179,7 +197,10 @@ export async function GET() {
 
     const list = surveys.map((survey) => {
       const groups = groupsBySurvey.get(survey.id) ?? [];
-      const eligible = matchesAnyGroup(profile, groups);
+      const hasTargets = targetSurveyIds.has(survey.id);
+      const eligible = hasTargets
+        ? targetedBySurvey.has(survey.id)
+        : matchesAnyGroup(profile, groups);
       const responded = responsesBySurvey.has(survey.id);
       const availability = computeAvailability(survey, now);
       const canAnswer =

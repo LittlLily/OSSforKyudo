@@ -4,6 +4,7 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import {
   matchesAnyGroup,
+  resolveSurveyTargetAccountIds,
   type TargetCondition,
   type TargetGroup,
 } from "@/lib/surveys/targets";
@@ -165,7 +166,14 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (profileResponse.error) throw profileResponse.error;
     const profile = profileResponse.data ?? {};
-    const eligible = matchesAnyGroup(profile, targetGroups);
+    const targetAccountIds = await resolveSurveyTargetAccountIds(
+      adminClient,
+      surveyId
+    );
+    const hasTargets = targetAccountIds.length > 0;
+    const eligible = hasTargets
+      ? targetAccountIds.includes(auth.userId)
+      : matchesAnyGroup(profile, targetGroups);
     if (!eligible) {
       return NextResponse.json({ error: "not eligible" }, { status: 403 });
     }

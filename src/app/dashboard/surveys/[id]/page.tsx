@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type SurveyDetail = {
+  role: "admin" | "user";
   survey: {
     id: string;
     title: string;
@@ -77,6 +78,7 @@ export default function SurveyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [optionDrafts, setOptionDrafts] = useState<Record<string, string>>({});
 
@@ -152,6 +154,28 @@ export default function SurveyDetailPage() {
     }
   };
 
+  const deleteSurvey = async () => {
+    if (!detail) return;
+    const confirmed = window.confirm("このアンケートを削除しますか？");
+    if (!confirmed) return;
+    setDeleting(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/surveys/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: detail.survey.id }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "failed to delete");
+      location.href = "/dashboard/surveys";
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "unknown error");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const addOption = async (questionId: string) => {
     const label = optionDrafts[questionId]?.trim();
     if (!label) return;
@@ -216,6 +240,24 @@ export default function SurveyDetailPage() {
         <span className="text-xs border rounded px-2 py-0.5">
           {statusLabel(detail)}
         </span>
+        {detail.role === "admin" ? (
+          <div className="flex items-center gap-3">
+            <Link
+              className="text-xs underline"
+              href={`/dashboard/surveys/${detail.survey.id}/edit`}
+            >
+              Edit
+            </Link>
+            <button
+              className="text-xs underline text-red-600"
+              type="button"
+              onClick={deleteSurvey}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {detail.survey.description ? (

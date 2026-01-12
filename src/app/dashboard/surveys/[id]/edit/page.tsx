@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type AuthState =
@@ -30,6 +31,27 @@ type SearchFilters = {
   gender: string;
 };
 
+type SurveyEditResponse = {
+  survey?: {
+    id: string;
+    title: string;
+    description: string | null;
+    status: "draft" | "open" | "closed";
+    opens_at: string | null;
+    closes_at: string | null;
+    is_anonymous: boolean;
+  };
+  questions?: {
+    id: string;
+    prompt: string;
+    type: "single" | "multiple";
+    allow_option_add: boolean;
+    options: { id: string; label: string }[];
+  }[];
+  targets?: ProfileResult[];
+  error?: string;
+};
+
 const emptyQuestion: QuestionForm = {
   prompt: "",
   type: "single",
@@ -37,7 +59,15 @@ const emptyQuestion: QuestionForm = {
   options: ["", ""],
 };
 
-export default function SurveyCreatePage() {
+const toLocalInputValue = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+export default function SurveyEditPage() {
+  const params = useParams<{ id: string }>();
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -59,6 +89,7 @@ export default function SurveyCreatePage() {
   const [selectedAccounts, setSelectedAccounts] = useState<ProfileResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     title?: string;
@@ -71,7 +102,7 @@ export default function SurveyCreatePage() {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          location.href = "/login?next=/dashboard/surveys/create";
+          location.href = `/login?next=/dashboard/surveys/${params.id}/edit`;
           return;
         }
         const data = (await res.json()) as {
@@ -92,7 +123,54 @@ export default function SurveyCreatePage() {
         });
       }
     })();
-  }, []);
+  }, [params.id]);
+
+  useEffect(() => {
+    if (!params.id) return;
+    (async () => {
+      setMessage(null);
+      try {
+        const res = await fetch(`/api/admin/surveys/${params.id}`, {
+          cache: "no-store",
+        });
+        if (res.status === 401) {
+          location.href = `/login?next=/dashboard/surveys/${params.id}/edit`;
+          return;
+        }
+        const data = (await res.json()) as SurveyEditResponse;
+        if (!res.ok) throw new Error(data.error || "failed to load survey");
+        if (!data.survey) throw new Error("survey not found");
+        setTitle(data.survey.title ?? "");
+        setDescription(data.survey.description ?? "");
+        setStatus(data.survey.status);
+        setOpensAt(
+          data.survey.opens_at
+            ? toLocalInputValue(new Date(data.survey.opens_at))
+            : ""
+        );
+        setClosesAt(
+          data.survey.closes_at
+            ? toLocalInputValue(new Date(data.survey.closes_at))
+            : ""
+        );
+        setIsAnonymous(Boolean(data.survey.is_anonymous));
+        setSelectedAccounts(data.targets ?? []);
+        const loadedQuestions =
+          data.questions?.map((question) => ({
+            prompt: question.prompt ?? "",
+            type: question.type === "multiple" ? "multiple" : "single",
+            allowOptionAdd: Boolean(question.allow_option_add),
+            options: question.options.map((option) => option.label ?? ""),
+          })) ?? [];
+        setQuestions(
+          loadedQuestions.length ? loadedQuestions : [{ ...emptyQuestion }]
+        );
+        setLoaded(true);
+      } catch (err) {
+        setMessage(err instanceof Error ? err.message : "unknown error");
+      }
+    })();
+  }, [params.id]);
 
   const updateQuestion = (index: number, value: Partial<QuestionForm>) => {
     setQuestions((prev) =>
@@ -169,7 +247,7 @@ export default function SurveyCreatePage() {
         cache: "no-store",
       });
       if (res.status === 401) {
-        location.href = "/login?next=/dashboard/surveys/create";
+        location.href = `/login?next=/dashboard/surveys/${params.id}/edit`;
         return;
       }
       const data = (await res.json()) as {
@@ -268,18 +346,14 @@ export default function SurveyCreatePage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/surveys", {
+      const res = await fetch(`/api/admin/surveys/${params.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await res.json()) as { id?: string; error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to create survey");
-      if (data.id) {
-        location.href = `/dashboard/surveys/${data.id}`;
-        return;
-      }
-      setMessage("created");
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "failed to update survey");
+      location.href = `/dashboard/surveys/${params.id}`;
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "unknown error");
     } finally {
@@ -287,7 +361,9 @@ export default function SurveyCreatePage() {
     }
   };
 
-  if (auth.status === "loading") return <main className="p-6">loading...</main>;
+  if (auth.status === "loading" || !loaded) {
+    return <main className="p-6">loading...</main>;
+  }
   if (auth.status === "error") {
     return (
       <main className="p-6">
@@ -299,10 +375,10 @@ export default function SurveyCreatePage() {
   return (
     <main className="p-6 space-y-6">
       <div className="flex items-center gap-3">
-        <Link className="underline" href="/dashboard/surveys">
+        <Link className="underline" href={`/dashboard/surveys/${params.id}`}>
           Back
         </Link>
-        <h1 className="text-2xl font-bold">Create survey</h1>
+        <h1 className="text-2xl font-bold">Edit survey</h1>
       </div>
 
       {message ? <p className="text-sm">error: {message}</p> : null}
@@ -585,7 +661,7 @@ export default function SurveyCreatePage() {
           onClick={submit}
           disabled={loading}
         >
-          {loading ? "Saving..." : "Create survey"}
+          {loading ? "Saving..." : "Update survey"}
         </button>
       </div>
     </main>

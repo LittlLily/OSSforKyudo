@@ -103,6 +103,20 @@ export async function GET(request: Request) {
       return NextResponse.json({ rows: [] });
     }
 
+    const targetResponse = await adminClient
+      .from("survey_targets")
+      .select("survey_id, account_id")
+      .in("survey_id", surveyIds);
+    if (targetResponse.error) throw targetResponse.error;
+
+    const targetAccountIdsBySurvey = new Map<string, string[]>();
+    for (const row of targetResponse.data ?? []) {
+      const surveyId = row.survey_id as string;
+      const list = targetAccountIdsBySurvey.get(surveyId) ?? [];
+      list.push(row.account_id as string);
+      targetAccountIdsBySurvey.set(surveyId, list);
+    }
+
     const groupsResponse = await adminClient
       .from("survey_target_groups")
       .select("id, survey_id, position")
@@ -165,12 +179,26 @@ export async function GET(request: Request) {
 
     const stats = new Map<string, { eligible: number; responded: number }>();
 
+    const allProfileIds = Array.from(profileById.keys());
+
     for (const survey of surveys) {
-      const targetGroups = groupsBySurvey.get(survey.id as string) ?? [];
-      const eligibleAccountIds = await resolveAccountIdsForTargetGroups(
-        adminClient,
-        targetGroups
-      );
+      const surveyId = survey.id as string;
+      const explicitTargets = targetAccountIdsBySurvey.get(surveyId) ?? [];
+      let eligibleAccountIds: string[] = [];
+
+      if (explicitTargets.length > 0) {
+        eligibleAccountIds = explicitTargets;
+      } else {
+        const targetGroups = groupsBySurvey.get(surveyId) ?? [];
+        if (targetGroups.length > 0) {
+          eligibleAccountIds = await resolveAccountIdsForTargetGroups(
+            adminClient,
+            targetGroups
+          );
+        } else {
+          eligibleAccountIds = allProfileIds;
+        }
+      }
 
       eligibleAccountIds.forEach((accountId) => {
         const current = stats.get(accountId) ?? { eligible: 0, responded: 0 };
@@ -183,7 +211,7 @@ export async function GET(request: Request) {
       const responsesResponse = await adminClient
         .from("survey_responses")
         .select("account_id")
-        .eq("survey_id", survey.id)
+        .eq("survey_id", surveyId)
         .in("account_id", eligibleAccountIds);
       if (responsesResponse.error) throw responsesResponse.error;
 

@@ -87,3 +87,15 @@ export const resolveAccountIdsForTargetGroups = async (
 
   return Array.from(accountIds);
 };
+
+export const resolveSurveyTargetAccountIds = async (
+  adminClient: SupabaseClient,
+  surveyId: string
+) => {
+  const response = await adminClient
+    .from("survey_targets")
+    .select("account_id")
+    .eq("survey_id", surveyId);
+  if (response.error) throw response.error;
+  return (response.data ?? []).map((row) => row.account_id as string);
+};
