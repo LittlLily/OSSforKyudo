@@ -19,7 +19,7 @@ function SubmitButton() {
     <button className="btn btn-primary" type="submit" disabled={pending}>
       <span className="inline-flex items-center gap-2">
         <HiOutlineArrowRightCircle className="text-base" />
-        {pending ? "Signing in..." : "Sign in"}
+        {pending ? "サインイン中..." : "サインイン"}
       </span>
     </button>
   );
@@ -35,7 +35,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineAtSymbol className="text-base" />
-          Email
+          メールアドレス
         </span>
         <input
           className="w-full"
@@ -47,7 +47,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineKey className="text-base" />
-          Password
+          パスワード
         </span>
         <input
           className="w-full"

@@ -39,11 +39,11 @@ const formatDate = (value: string | null) => {
 };
 
 const statusLabel = (survey: Survey) => {
-  if (survey.status === "draft") return "draft";
-  if (survey.status === "closed") return "closed";
-  if (survey.availability === "upcoming") return "upcoming";
-  if (survey.availability === "closed") return "closed";
-  return "open";
+  if (survey.status === "draft") return "下書き";
+  if (survey.status === "closed") return "終了";
+  if (survey.availability === "upcoming") return "開始前";
+  if (survey.availability === "closed") return "終了";
+  return "公開中";
 };
 
 const responseLabel = (survey: Survey) => {
@@ -69,11 +69,11 @@ export default function SurveysPage() {
           return;
         }
         const data = (await res.json()) as ListResponse;
-        if (!res.ok) throw new Error(data.error || "failed to load surveys");
+        if (!res.ok) throw new Error(data.error || "アンケートの読み込みに失敗しました");
         setSurveys(data.surveys ?? []);
         setRole(data.role ?? "user");
       } catch (err) {
-        setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
       } finally {
         setLoading(false);
       }
@@ -94,7 +94,7 @@ export default function SurveysPage() {
   }, [surveys]);
 
   if (loading) {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   return (
@@ -102,25 +102,25 @@ export default function SurveysPage() {
       <div className="inline-list">
         <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/analytics">
           <HiOutlineChartBar className="text-base" />
-          Analytics
+          集計
         </Link>
         {role === "admin" ? (
           <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/create">
             <HiOutlinePlusCircle className="text-base" />
-            Create survey
+            アンケート作成
           </Link>
         ) : null}
       </div>
 
-      {message ? <p className="text-sm">error: {message}</p> : null}
+      {message ? <p className="text-sm">エラー: {message}</p> : null}
 
       <section className="section">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineClock className="text-base" />
-          Pending Responses
+          未回答
         </h2>
         {pendingSurveys.length === 0 ? (
-          <p className="text-sm">no pending surveys</p>
+          <p className="text-sm">未回答のアンケートはありません</p>
         ) : (
           <div className="space-y-3">
             {pendingSurveys.map((survey) => (
@@ -136,9 +136,9 @@ export default function SurveysPage() {
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
                 <div className="mt-3 text-xs text-[color:var(--muted)]">
-                  <span>open: {formatDate(survey.opens_at)}</span>
+                  <span>開始: {formatDate(survey.opens_at)}</span>
                   <span className="ml-3">
-                    close: {formatDate(survey.closes_at)}
+                    終了: {formatDate(survey.closes_at)}
                   </span>
                 </div>
               </div>
@@ -150,10 +150,10 @@ export default function SurveysPage() {
       <section className="section">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineCheckCircle className="text-base" />
-          Completed
+          回答済み
         </h2>
         {completedSurveys.length === 0 ? (
-          <p className="text-sm">no completed surveys</p>
+          <p className="text-sm">回答済みのアンケートはありません</p>
         ) : (
           <div className="space-y-3">
             {completedSurveys.map((survey) => (
@@ -169,9 +169,9 @@ export default function SurveysPage() {
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
                 <div className="mt-3 text-xs text-[color:var(--muted)]">
-                  <span>open: {formatDate(survey.opens_at)}</span>
+                  <span>開始: {formatDate(survey.opens_at)}</span>
                   <span className="ml-3">
-                    close: {formatDate(survey.closes_at)}
+                    終了: {formatDate(survey.closes_at)}
                   </span>
                 </div>
               </div>

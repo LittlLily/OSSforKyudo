@@ -58,7 +58,8 @@ export default function AdminProfileEditPage() {
           user?: { email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
@@ -67,7 +68,7 @@ export default function AdminProfileEditPage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
@@ -79,7 +80,7 @@ export default function AdminProfileEditPage() {
 
   const handleLoad = async () => {
     if (!targetEmail.trim()) {
-      setMessage("error: email is required");
+      setMessage("エラー: メールアドレスは必須です");
       return;
     }
 
@@ -96,15 +97,16 @@ export default function AdminProfileEditPage() {
       }
       const bodyText = await res.text();
       const data = bodyText
-        ? ((JSON.parse(bodyText) as {
+        ? (JSON.parse(bodyText) as {
             profile?: Partial<ProfileForm> & { id?: string | null };
             role?: "admin" | "user";
             error?: string;
-          }) ?? {})
+          }) ?? {}
         : {};
       if (!res.ok) {
         throw new Error(
-          (data as { error?: string }).error || "failed to load profile"
+          (data as { error?: string }).error ||
+            "プロフィールの読み込みに失敗しました"
         );
       }
       const profile = data.profile ?? {};
@@ -121,12 +123,12 @@ export default function AdminProfileEditPage() {
       setRole(data.role ?? "user");
       setLoadedId(profile.id ?? null);
       if (profile.id) {
-        setMessage(`loaded: ${profile.id}`);
+        setMessage(`読み込み完了: ${profile.id}`);
       } else {
-        setMessage("loaded");
+        setMessage("読み込み完了");
       }
     } catch (err) {
-      setMessage(err instanceof Error ? `error: ${err.message}` : "error");
+      setMessage(err instanceof Error ? `エラー: ${err.message}` : "エラー");
       setLoadedId(null);
     } finally {
       setLoading(false);
@@ -135,7 +137,7 @@ export default function AdminProfileEditPage() {
 
   const handleSave = async () => {
     if (!loadedId) {
-      setMessage("error: load profile first");
+      setMessage("エラー: 先にプロフィールを読み込んでください");
       return;
     }
 
@@ -171,27 +173,27 @@ export default function AdminProfileEditPage() {
       }
       const bodyText = await res.text();
       const data = bodyText
-        ? ((JSON.parse(bodyText) as { error?: string; id?: string }) ?? {})
+        ? (JSON.parse(bodyText) as { error?: string; id?: string }) ?? {}
         : {};
       if (!res.ok) {
-        throw new Error(data.error || "failed to update profile");
+        throw new Error(data.error || "プロフィールの更新に失敗しました");
       }
-      setMessage("saved");
+      setMessage("保存しました");
     } catch (err) {
-      setMessage(err instanceof Error ? `error: ${err.message}` : "error");
+      setMessage(err instanceof Error ? `エラー: ${err.message}` : "エラー");
     } finally {
       setSaving(false);
     }
   };
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -199,10 +201,10 @@ export default function AdminProfileEditPage() {
   if (auth.role !== "admin") {
     return (
       <main className="page">
-        <p className="text-sm">forbidden</p>
+        <p className="text-sm">権限がありません</p>
         <Link className="btn btn-ghost inline-flex items-center gap-2" href="/">
           <HiOutlineArrowLeft className="text-base" />
-          Back
+          戻る
         </Link>
       </main>
     );
@@ -213,13 +215,13 @@ export default function AdminProfileEditPage() {
       <div className="card space-y-4">
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            User email
+            ユーザーメール
           </span>
           <input
             className="w-full"
             value={targetEmail}
             onChange={(event) => setTargetEmail(event.target.value)}
-            placeholder="email@example.com"
+            placeholder="example@example.com"
           />
         </label>
         <button
@@ -230,7 +232,7 @@ export default function AdminProfileEditPage() {
         >
           <span className="inline-flex items-center gap-2">
             <HiOutlineArrowDownTray className="text-base" />
-            {loading ? "Loading..." : "Load profile"}
+            {loading ? "読み込み中..." : "プロフィールを読み込む"}
           </span>
         </button>
       </div>
@@ -238,11 +240,11 @@ export default function AdminProfileEditPage() {
       <div className="card space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlinePencilSquare className="text-base" />
-          Profile edit
+          プロフィール編集
         </h2>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            display_name
+            表示名
           </span>
           <input
             className="w-full"
@@ -252,7 +254,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            student_number
+            学籍番号
           </span>
           <input
             className="w-full"
@@ -262,7 +264,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            name_kana
+            氏名（カナ）
           </span>
           <input
             className="w-full"
@@ -272,7 +274,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            generation
+            代
           </span>
           <input
             className="w-full"
@@ -282,7 +284,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            gender
+            性別
           </span>
           <select
             className="w-full"
@@ -291,14 +293,14 @@ export default function AdminProfileEditPage() {
               setField("gender", event.target.value as ProfileForm["gender"])
             }
           >
-            <option value="">(empty)</option>
-            <option value="male">male</option>
-            <option value="female">female</option>
+            <option value="">(未設定)</option>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
           </select>
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            department
+            学科
           </span>
           <input
             className="w-full"
@@ -308,7 +310,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            ryuha
+            流派
           </span>
           <input
             className="w-full"
@@ -318,7 +320,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            position
+            役職
           </span>
           <input
             className="w-full"
@@ -328,7 +330,7 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
-            role
+            権限
           </span>
           <select
             className="w-full"
@@ -337,9 +339,9 @@ export default function AdminProfileEditPage() {
               setRole(event.target.value as "admin" | "user" | "")
             }
           >
-            <option value="">(empty)</option>
-            <option value="user">user</option>
-            <option value="admin">admin</option>
+            <option value="">(未設定)</option>
+            <option value="user">ユーザー</option>
+            <option value="admin">管理者</option>
           </select>
         </label>
 
@@ -351,15 +353,18 @@ export default function AdminProfileEditPage() {
         >
           <span className="inline-flex items-center gap-2">
             <HiOutlineCheckCircle className="text-base" />
-            {saving ? "Saving..." : "Save"}
+            {saving ? "保存中..." : "保存"}
           </span>
         </button>
         {message ? <p className="text-sm">{message}</p> : null}
       </div>
 
-      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+      <Link
+        className="btn btn-ghost inline-flex items-center gap-2"
+        href="/dashboard/profile"
+      >
         <HiOutlineArrowLeft className="text-base" />
-        Back
+        戻る
       </Link>
     </main>
   );

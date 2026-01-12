@@ -25,7 +25,7 @@ function SubmitButton() {
     >
       <span className="inline-flex items-center gap-2">
         <HiOutlineUserPlus className="text-base" />
-        {pending ? "Creating..." : "Create"}
+        {pending ? "作成中..." : "作成"}
       </span>
     </button>
   );
@@ -39,7 +39,7 @@ export default function AdminCreateUserForm() {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineAtSymbol className="text-base" />
-          Email
+          メールアドレス
         </span>
         <input
           className="w-full"
@@ -50,7 +50,7 @@ export default function AdminCreateUserForm() {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineKey className="text-base" />
-          Password
+          パスワード
         </span>
         <input
           className="w-full"
@@ -62,7 +62,7 @@ export default function AdminCreateUserForm() {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineIdentification className="text-base" />
-          Name (日本語)
+          氏名（日本語）
         </span>
         <input
           className="w-full"
@@ -72,11 +72,11 @@ export default function AdminCreateUserForm() {
       <label className="field">
         <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
           <HiOutlineShieldCheck className="text-base" />
-          Role
+          権限
         </span>
         <select className="w-full" name="role">
-          <option value="user">user</option>
-          <option value="admin">admin</option>
+          <option value="user">ユーザー</option>
+          <option value="admin">管理者</option>
         </select>
       </label>
       <div className="inline-list">

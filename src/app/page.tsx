@@ -29,7 +29,7 @@ export default function Home() {
           profile?: { displayName?: string | null };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok) throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setState({
           status: "authed",
           email: data.user?.email ?? "",
@@ -39,19 +39,19 @@ export default function Home() {
       } catch (err) {
         setState({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (state.status === "loading")
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
 
   if (state.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {state.message}</p>
+        <p className="text-sm">エラー: {state.message}</p>
       </main>
     );
   }
@@ -60,7 +60,7 @@ export default function Home() {
     <main className="page">
       <div className="flex items-center gap-2 text-sm text-[color:var(--muted)]">
         <HiOutlineHome className="text-base" />
-        Dashboard content is intentionally empty.
+        ダッシュボードは現在空です。
       </div>
     </main>
   );

@@ -90,17 +90,18 @@ export default function SurveyCreatePage() {
           user?: { role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         const role = data.user?.role ?? "user";
         if (role !== "admin") {
-          setAuth({ status: "error", message: "forbidden" });
+          setAuth({ status: "error", message: "権限がありません" });
           return;
         }
         setAuth({ status: "authed", role });
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
@@ -144,7 +145,9 @@ export default function SurveyCreatePage() {
     setQuestions((prev) =>
       prev.map((question, qIndex) => {
         if (qIndex !== questionIndex) return question;
-        const options = question.options.filter((_, oIndex) => oIndex !== optionIndex);
+        const options = question.options.filter(
+          (_, oIndex) => oIndex !== optionIndex
+        );
         return { ...question, options: options.length ? options : [""] };
       })
     );
@@ -188,11 +191,12 @@ export default function SurveyCreatePage() {
         users?: ProfileResult[];
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error || "failed to load users");
+      if (!res.ok)
+        throw new Error(data.error || "ユーザーの読み込みに失敗しました");
       setSearchResults(data.users ?? []);
       setSearchSelected([]);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setSearching(false);
     }
@@ -249,12 +253,11 @@ export default function SurveyCreatePage() {
     );
     const hasEmptyOptions = questions.some(
       (question) =>
-        question.options.map((option) => option.trim()).filter(Boolean).length ===
-        0
+        question.options.map((option) => option.trim()).filter(Boolean)
+          .length === 0
     );
     if (hasEmptyQuestion || hasEmptyOptions) {
-      nextErrors.questions =
-        "質問文と選択肢をすべて入力してください";
+      nextErrors.questions = "質問文と選択肢をすべて入力してください";
     }
     if (selectedAccounts.length === 0) {
       nextErrors.targets = "対象者を1人以上選択してください";
@@ -273,7 +276,9 @@ export default function SurveyCreatePage() {
         prompt: question.prompt.trim(),
         type: question.type,
         allowOptionAdd: question.allowOptionAdd,
-        options: question.options.map((option) => option.trim()).filter(Boolean),
+        options: question.options
+          .map((option) => option.trim())
+          .filter(Boolean),
       })),
       accountIds: selectedAccounts.map((account) => account.id),
     };
@@ -286,24 +291,26 @@ export default function SurveyCreatePage() {
         body: JSON.stringify(payload),
       });
       const data = (await res.json()) as { id?: string; error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to create survey");
+      if (!res.ok)
+        throw new Error(data.error || "アンケートの作成に失敗しました");
       if (data.id) {
         location.href = `/dashboard/surveys/${data.id}`;
         return;
       }
-      setMessage("created");
+      setMessage("作成しました");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setLoading(false);
     }
   };
 
-  if (auth.status === "loading") return <main className="page">loading...</main>;
+  if (auth.status === "loading")
+    return <main className="page">読み込み中...</main>;
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p>error: {auth.message}</p>
+        <p>エラー: {auth.message}</p>
       </main>
     );
   }
@@ -311,18 +318,21 @@ export default function SurveyCreatePage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
+        <Link
+          className="btn btn-ghost inline-flex items-center gap-2"
+          href="/dashboard/surveys"
+        >
           <HiOutlineArrowLeft className="text-base" />
-          Back
+          戻る
         </Link>
       </div>
 
-      {message ? <p className="text-sm">error: {message}</p> : null}
+      {message ? <p className="text-sm">エラー: {message}</p> : null}
 
       <section className="section">
         <div className="field">
           <label className="text-sm font-semibold text-[color:var(--muted)]">
-            Title
+            タイトル
           </label>
           <input
             className="w-full"
@@ -335,7 +345,7 @@ export default function SurveyCreatePage() {
         </div>
         <div className="field">
           <label className="text-sm font-semibold text-[color:var(--muted)]">
-            Description
+            説明
           </label>
           <textarea
             className="w-full"
@@ -347,7 +357,7 @@ export default function SurveyCreatePage() {
         <div className="flex flex-wrap gap-4">
           <div className="field">
             <label className="text-sm font-semibold text-[color:var(--muted)]">
-              Status
+              状態
             </label>
             <select
               className="w-36"
@@ -356,14 +366,14 @@ export default function SurveyCreatePage() {
                 setStatus(event.target.value as "draft" | "open" | "closed")
               }
             >
-              <option value="draft">draft</option>
-              <option value="open">open</option>
-              <option value="closed">closed</option>
+              <option value="draft">下書き</option>
+              <option value="open">公開中</option>
+              <option value="closed">終了</option>
             </select>
           </div>
           <div className="field">
             <label className="text-sm font-semibold text-[color:var(--muted)]">
-              Open at
+              開始日時
             </label>
             <input
               className="w-52"
@@ -374,7 +384,7 @@ export default function SurveyCreatePage() {
           </div>
           <div className="field">
             <label className="text-sm font-semibold text-[color:var(--muted)]">
-              Close at
+              終了日時
             </label>
             <input
               className="w-52"
@@ -389,7 +399,7 @@ export default function SurveyCreatePage() {
               checked={isAnonymous}
               onChange={(event) => setIsAnonymous(event.target.checked)}
             />
-            Anonymous
+            匿名
           </label>
         </div>
       </section>
@@ -397,13 +407,13 @@ export default function SurveyCreatePage() {
       <section className="section">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineUserGroup className="text-base" />
-          Targets
+          対象者
         </h2>
         <div className="card space-y-3">
           <div className="grid gap-2 sm:grid-cols-2">
             <input
               className="w-full"
-              placeholder="display_name"
+              placeholder="表示名"
               value={filters.display_name}
               onChange={(event) =>
                 updateFilter("display_name", event.target.value)
@@ -411,7 +421,7 @@ export default function SurveyCreatePage() {
             />
             <input
               className="w-full"
-              placeholder="student_number"
+              placeholder="学籍番号"
               value={filters.student_number}
               onChange={(event) =>
                 updateFilter("student_number", event.target.value)
@@ -419,7 +429,7 @@ export default function SurveyCreatePage() {
             />
             <input
               className="w-full"
-              placeholder="generation"
+              placeholder="代"
               value={filters.generation}
               onChange={(event) =>
                 updateFilter("generation", event.target.value)
@@ -427,7 +437,7 @@ export default function SurveyCreatePage() {
             />
             <input
               className="w-full"
-              placeholder="gender"
+              placeholder="性別"
               value={filters.gender}
               onChange={(event) => updateFilter("gender", event.target.value)}
             />
@@ -441,7 +451,7 @@ export default function SurveyCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineMagnifyingGlass className="text-base" />
-                {searching ? "Searching..." : "Search"}
+                {searching ? "検索中..." : "検索"}
               </span>
             </button>
             <button
@@ -452,7 +462,7 @@ export default function SurveyCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineSquares2X2 className="text-base" />
-                Select all
+                全選択
               </span>
             </button>
             <button
@@ -463,13 +473,13 @@ export default function SurveyCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineUserPlus className="text-base" />
-                Add selected
+                選択を追加
               </span>
             </button>
           </div>
           <div className="space-y-2">
             {searchResults.length === 0 ? (
-              <p className="text-sm">no results</p>
+              <p className="text-sm">結果がありません</p>
             ) : (
               <ul className="space-y-1 text-sm">
                 {searchResults.map((user) => (
@@ -492,10 +502,10 @@ export default function SurveyCreatePage() {
 
         <div className="card-soft space-y-2">
           <div className="text-sm font-semibold">
-            Selected ({selectedAccounts.length})
+            選択済み（{selectedAccounts.length}）
           </div>
           {selectedAccounts.length === 0 ? (
-            <p className="text-sm">no selected accounts</p>
+            <p className="text-sm">選択されたアカウントがありません</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {selectedAccounts.map((user) => (
@@ -511,7 +521,7 @@ export default function SurveyCreatePage() {
                   >
                     <span className="inline-flex items-center gap-2">
                       <HiOutlineTrash className="text-base" />
-                      Remove
+                      削除
                     </span>
                   </button>
                 </li>
@@ -528,16 +538,12 @@ export default function SurveyCreatePage() {
         <div className="inline-list">
           <h2 className="section-title flex items-center gap-2">
             <HiOutlineQuestionMarkCircle className="text-base" />
-            Questions
+            質問
           </h2>
-          <button
-            className="btn btn-ghost"
-            type="button"
-            onClick={addQuestion}
-          >
+          <button className="btn btn-ghost" type="button" onClick={addQuestion}>
             <span className="inline-flex items-center gap-2">
               <HiOutlinePlusCircle className="text-base" />
-              Add question
+              質問を追加
             </span>
           </button>
         </div>
@@ -557,8 +563,8 @@ export default function SurveyCreatePage() {
                   })
                 }
               >
-                <option value="single">single</option>
-                <option value="multiple">multiple</option>
+                <option value="single">単一選択</option>
+                <option value="multiple">複数選択</option>
               </select>
               <label className="inline-list text-sm">
                 <input
@@ -570,7 +576,7 @@ export default function SurveyCreatePage() {
                     })
                   }
                 />
-                allow option add
+                選択肢の追加を許可
               </label>
               <button
                 className="btn btn-ghost"
@@ -580,13 +586,13 @@ export default function SurveyCreatePage() {
               >
                 <span className="inline-flex items-center gap-2">
                   <HiOutlineTrash className="text-base" />
-                  Remove question
+                  質問を削除
                 </span>
               </button>
             </div>
             <input
               className="w-full"
-              placeholder="Question prompt"
+              placeholder="質問文"
               value={question.prompt}
               onChange={(event) =>
                 updateQuestion(index, { prompt: event.target.value })
@@ -597,7 +603,7 @@ export default function SurveyCreatePage() {
                 <div key={optionIndex} className="flex items-center gap-2">
                   <input
                     className="flex-1"
-                    placeholder={`Option ${optionIndex + 1}`}
+                    placeholder={`選択肢 ${optionIndex + 1}`}
                     value={option}
                     onChange={(event) =>
                       updateOption(index, optionIndex, event.target.value)
@@ -610,7 +616,7 @@ export default function SurveyCreatePage() {
                   >
                     <span className="inline-flex items-center gap-2">
                       <HiOutlineMinusCircle className="text-base" />
-                      Remove
+                      削除
                     </span>
                   </button>
                 </div>
@@ -622,7 +628,7 @@ export default function SurveyCreatePage() {
               >
                 <span className="inline-flex items-center gap-2">
                   <HiOutlinePlusCircle className="text-base" />
-                  Add option
+                  選択肢を追加
                 </span>
               </button>
             </div>
@@ -639,7 +645,7 @@ export default function SurveyCreatePage() {
         >
           <span className="inline-flex items-center gap-2">
             <HiOutlineCheckCircle className="text-base" />
-            {loading ? "Saving..." : "Create survey"}
+            {loading ? "保存中..." : "アンケートを作成"}
           </span>
         </button>
       </div>

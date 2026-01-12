@@ -97,6 +97,23 @@ const adminFields: Array<keyof ProfileRow> = [
   "position",
 ];
 
+const fieldLabels: Record<keyof ProfileRow, string> = {
+  id: "ID",
+  email: "メール",
+  role: "権限",
+  display_name: "表示名",
+  student_number: "学籍番号",
+  name_kana: "氏名（カナ）",
+  generation: "代",
+  gender: "性別",
+  department: "学科",
+  ryuha: "流派",
+  position: "役職",
+};
+
+const roleLabel = (role?: "admin" | "user") =>
+  role === "admin" ? "管理者" : "ユーザー";
+
 export default function AdminProfileListPage() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [list, setList] = useState<ListState>({ status: "idle" });
@@ -133,7 +150,8 @@ export default function AdminProfileListPage() {
           user?: { email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
@@ -142,7 +160,7 @@ export default function AdminProfileListPage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
@@ -158,7 +176,8 @@ export default function AdminProfileListPage() {
     try {
       const params = new URLSearchParams();
       if (form.display_name) params.set("display_name", form.display_name);
-      if (form.student_number) params.set("student_number", form.student_number);
+      if (form.student_number)
+        params.set("student_number", form.student_number);
       if (form.generation) params.set("generation", form.generation);
       if (form.gender) params.set("gender", form.gender);
       if (form.department) params.set("department", form.department);
@@ -173,12 +192,13 @@ export default function AdminProfileListPage() {
         users?: ProfileRow[];
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error || "failed to load list");
+      if (!res.ok)
+        throw new Error(data.error || "一覧の読み込みに失敗しました");
       setList({ status: "loaded", users: data.users ?? [] });
     } catch (err) {
       setList({
         status: "error",
-        message: err instanceof Error ? err.message : "unknown error",
+        message: err instanceof Error ? err.message : "不明なエラー",
       });
     }
   };
@@ -200,13 +220,13 @@ export default function AdminProfileListPage() {
   }, [form, list.status]);
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -216,12 +236,12 @@ export default function AdminProfileListPage() {
       <div className="card space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineMagnifyingGlass className="text-base" />
-          Search
+          検索
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              display_name
+              表示名
             </span>
             <input
               className="w-full"
@@ -233,7 +253,7 @@ export default function AdminProfileListPage() {
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              student_number
+              学籍番号
             </span>
             <input
               className="w-full"
@@ -245,7 +265,7 @@ export default function AdminProfileListPage() {
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              generation
+              代
             </span>
             <input
               className="w-full"
@@ -257,31 +277,33 @@ export default function AdminProfileListPage() {
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              gender
+              性別
             </span>
             <select
               className="w-full"
               value={form.gender}
               onChange={(event) => updateField("gender", event.target.value)}
             >
-              <option value="">(any)</option>
-              <option value="male">male</option>
-              <option value="female">female</option>
+              <option value="">(指定なし)</option>
+              <option value="male">男性</option>
+              <option value="female">女性</option>
             </select>
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              department
+              学科
             </span>
             <input
               className="w-full"
               value={form.department}
-              onChange={(event) => updateField("department", event.target.value)}
+              onChange={(event) =>
+                updateField("department", event.target.value)
+              }
             />
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              ryuha
+              流派
             </span>
             <input
               className="w-full"
@@ -291,7 +313,7 @@ export default function AdminProfileListPage() {
           </label>
           <label className="field">
             <span className="text-sm font-semibold text-[color:var(--muted)]">
-              position
+              役職
             </span>
             <input
               className="w-full"
@@ -309,7 +331,7 @@ export default function AdminProfileListPage() {
           >
             <span className="inline-flex items-center gap-2">
               <HiOutlineMagnifyingGlass className="text-base" />
-              Search
+              検索
             </span>
           </button>
           <button
@@ -320,39 +342,40 @@ export default function AdminProfileListPage() {
           >
             <span className="inline-flex items-center gap-2">
               <HiOutlineArrowPath className="text-base" />
-              Reset
+              リセット
             </span>
           </button>
         </div>
       </div>
 
       {list.status === "loading" ? (
-        <p className="text-sm">loading...</p>
+        <p className="text-sm">読み込み中...</p>
       ) : list.status === "error" ? (
-        <p className="text-sm">error: {list.message}</p>
+        <p className="text-sm">エラー: {list.message}</p>
       ) : list.status === "loaded" ? (
         <div className="space-y-4">
           {sortedUsers.map((user) => {
-            const fields =
-              auth.role === "admin" ? adminFields : limitedFields;
+            const fields = auth.role === "admin" ? adminFields : limitedFields;
             return (
               <div key={user.id} className="card">
                 {auth.role === "admin" ? (
                   <div className="text-sm">
                     <p>
-                      <span className="font-semibold">email:</span>{" "}
+                      <span className="font-semibold">メール:</span>{" "}
                       {user.email ?? "-"}
                     </p>
                     <p>
-                      <span className="font-semibold">role:</span>{" "}
-                      {user.role ?? "user"}
+                      <span className="font-semibold">権限:</span>{" "}
+                      {user.role ? roleLabel(user.role) : "-"}
                     </p>
                   </div>
                 ) : null}
                 <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   {fields.map((field) => (
                     <p key={field}>
-                      <span className="font-semibold">{field}:</span>{" "}
+                      <span className="font-semibold">
+                        {fieldLabels[field]}:
+                      </span>{" "}
                       {user[field] ?? "-"}
                     </p>
                   ))}
@@ -362,12 +385,15 @@ export default function AdminProfileListPage() {
           })}
         </div>
       ) : (
-        <p className="text-sm">ready</p>
+        <p className="text-sm">準備完了</p>
       )}
 
-      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
+      <Link
+        className="btn btn-ghost inline-flex items-center gap-2"
+        href="/dashboard/profile"
+      >
         <HiOutlineArrowLeft className="text-base" />
-        Back
+        戻る
       </Link>
     </main>
   );

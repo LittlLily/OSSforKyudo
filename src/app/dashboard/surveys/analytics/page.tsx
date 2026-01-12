@@ -49,7 +49,7 @@ export default function SurveyAnalyticsPage() {
       const start = new Date(startAt);
       const end = new Date(endAt);
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        setMessage("invalid date");
+        setMessage("日付が不正です");
         return;
       }
       const params = new URLSearchParams({
@@ -64,10 +64,11 @@ export default function SurveyAnalyticsPage() {
         return;
       }
       const data = (await res.json()) as AnalyticsResponse;
-      if (!res.ok) throw new Error(data.error || "failed to load analytics");
+      if (!res.ok)
+        throw new Error(data.error || "分析の読み込みに失敗しました");
       setRows(data.rows ?? []);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ export default function SurveyAnalyticsPage() {
       <div className="inline-list">
         <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
           <HiOutlineArrowLeft className="text-base" />
-          Back
+          戻る
         </Link>
       </div>
 
@@ -95,7 +96,7 @@ export default function SurveyAnalyticsPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="field">
             <label className="text-sm font-semibold text-[color:var(--muted)]">
-              Start
+              開始
             </label>
             <input
               className="w-52"
@@ -106,7 +107,7 @@ export default function SurveyAnalyticsPage() {
           </div>
           <div className="field">
             <label className="text-sm font-semibold text-[color:var(--muted)]">
-              End
+              終了
             </label>
             <input
               className="w-52"
@@ -123,11 +124,11 @@ export default function SurveyAnalyticsPage() {
           >
             <span className="inline-flex items-center gap-2">
               <HiOutlineArrowDownTray className="text-base" />
-              {loading ? "Loading..." : "Load"}
+              {loading ? "読み込み中..." : "読み込み"}
             </span>
           </button>
         </div>
-        {message ? <p className="text-sm">error: {message}</p> : null}
+        {message ? <p className="text-sm">エラー: {message}</p> : null}
       </section>
 
       <section className="section">
@@ -136,17 +137,17 @@ export default function SurveyAnalyticsPage() {
           回答率一覧
         </h2>
         {sortedRows.length === 0 ? (
-          <p className="text-sm">no data</p>
+          <p className="text-sm">データがありません</p>
         ) : (
           <div className="table-wrap">
             <table className="min-w-[640px] text-sm">
               <thead>
                 <tr>
-                  <th className="text-left">Name</th>
-                  <th className="text-left">Student No</th>
-                  <th className="text-right">Eligible</th>
-                  <th className="text-right">Responded</th>
-                  <th className="text-right">Rate</th>
+                  <th className="text-left">氏名</th>
+                  <th className="text-left">学籍番号</th>
+                  <th className="text-right">対象数</th>
+                  <th className="text-right">回答数</th>
+                  <th className="text-right">回答率</th>
                 </tr>
               </thead>
               <tbody>

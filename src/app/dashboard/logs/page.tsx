@@ -28,7 +28,7 @@ export default function LogsPage() {
           user?: { role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok) throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           role: data.user?.role ?? "user",
@@ -36,20 +36,20 @@ export default function LogsPage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -60,7 +60,7 @@ export default function LogsPage() {
         <div>
           <h1 className="page-title flex items-center gap-3">
             <HiOutlineDocumentText className="text-2xl" />
-            Logs
+            ログ
           </h1>
           <p className="page-subtitle">
             監視用のアカウントログと会計ログを確認できます。

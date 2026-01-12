@@ -29,7 +29,7 @@ export default function AdminProfilePage() {
           user?: { email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok) throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
@@ -38,20 +38,20 @@ export default function AdminProfilePage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -66,21 +66,21 @@ export default function AdminProfilePage() {
               href="/dashboard/profile/profile-edit"
             >
               <HiOutlineUserCircle className="text-lg" />
-              Profile edit
+              プロフィール編集
             </Link>
             <Link
               className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/profile/profile-create"
             >
               <HiOutlinePlusCircle className="text-lg" />
-              Profile create
+              プロフィール作成
             </Link>
             <Link
               className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/profile/profile-delete"
             >
               <HiOutlineTrash className="text-lg" />
-              Profile delete
+              プロフィール削除
             </Link>
           </>
         ) : null}
@@ -89,7 +89,7 @@ export default function AdminProfilePage() {
           href="/dashboard/profile/profile-list"
         >
           <HiOutlineClipboardDocumentList className="text-lg" />
-          Profile list
+          プロフィール一覧
         </Link>
       </div>
     </main>

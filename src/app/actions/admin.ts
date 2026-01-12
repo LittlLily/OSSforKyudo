@@ -15,18 +15,18 @@ export async function createUser(
   const role = String(formData.get("role") ?? "user");
 
   if (!email || !password) {
-    return { message: "error: email and password are required" };
+    return { message: "エラー: メールアドレスとパスワードは必須です" };
   }
 
   if (role !== "admin" && role !== "user") {
-    return { message: "error: invalid role" };
+    return { message: "エラー: 権限が不正です" };
   }
 
   const supabase = createClient(await cookies());
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) {
     return {
-      message: `error: auth user unavailable${
+      message: `エラー: 認証ユーザーが取得できません${
         userError ? ` / ${userError.message}` : ""
       }`,
     };
@@ -37,7 +37,7 @@ export async function createUser(
   const accessToken = sessionData.session?.access_token;
   if (sessionError || !accessToken) {
     return {
-      message: `error: missing session token${
+      message: `エラー: セッショントークンがありません${
         sessionError ? ` / ${sessionError.message}` : ""
       }`,
     };
@@ -65,8 +65,8 @@ export async function createUser(
     ]
       .filter(Boolean)
       .join(" / ");
-    return { message: `error: ${details}` };
+    return { message: `エラー: ${details}` };
   }
 
-  return { message: `created: ${response.data?.user_id ?? "ok"}` };
+  return { message: `作成: ${response.data?.user_id ?? "ok"}` };
 }

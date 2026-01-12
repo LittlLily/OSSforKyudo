@@ -62,7 +62,8 @@ export default function InvoiceCreatePage() {
           user?: { email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
@@ -71,7 +72,7 @@ export default function InvoiceCreatePage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
@@ -106,11 +107,12 @@ export default function InvoiceCreatePage() {
         users?: UserProfile[];
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error || "failed to load users");
+      if (!res.ok)
+        throw new Error(data.error || "ユーザーの読み込みに失敗しました");
       setUsers(data.users ?? []);
       setSelectedIds([]);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setLoading(false);
     }
@@ -122,7 +124,9 @@ export default function InvoiceCreatePage() {
 
   const toggleSelect = (userId: string) => {
     setSelectedIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
     );
   };
 
@@ -138,11 +142,11 @@ export default function InvoiceCreatePage() {
     setMessage(null);
     const amountValue = Number(amount);
     if (!amountValue || Number.isNaN(amountValue) || amountValue <= 0) {
-      setMessage("amount is required");
+      setMessage("金額は必須です");
       return;
     }
     if (selectedIds.length === 0) {
-      setMessage("select at least one account");
+      setMessage("対象アカウントを1件以上選択してください");
       return;
     }
 
@@ -158,28 +162,31 @@ export default function InvoiceCreatePage() {
         }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to create invoices");
-      setMessage("created");
+      if (!res.ok) throw new Error(data.error || "請求の作成に失敗しました");
+      setMessage("作成しました");
       setSelectedIds([]);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     }
   };
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
         <div className="inline-list">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+          <Link
+            className="btn btn-ghost inline-flex items-center gap-2"
+            href="/dashboard/invoices"
+          >
             <HiOutlineArrowLeft className="text-base" />
-            Invoices
+            請求一覧
           </Link>
         </div>
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -188,12 +195,15 @@ export default function InvoiceCreatePage() {
     return (
       <main className="page">
         <div className="inline-list">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+          <Link
+            className="btn btn-ghost inline-flex items-center gap-2"
+            href="/dashboard/invoices"
+          >
             <HiOutlineArrowLeft className="text-base" />
-            Invoices
+            請求一覧
           </Link>
         </div>
-        <p className="text-sm">admin only</p>
+        <p className="text-sm">管理者のみ</p>
       </main>
     );
   }
@@ -201,21 +211,24 @@ export default function InvoiceCreatePage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/invoices">
+        <Link
+          className="btn btn-ghost inline-flex items-center gap-2"
+          href="/dashboard/invoices"
+        >
           <HiOutlineArrowLeft className="text-base" />
-          Invoices
+          請求一覧
         </Link>
       </div>
 
       <section className="section">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineMagnifyingGlass className="text-base" />
-          Search accounts
+          アカウント検索
         </h2>
         <div className="card space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">display_name</span>
+              <span className="text-[color:var(--muted)]">表示名</span>
               <input
                 className="w-full"
                 value={filters.display_name}
@@ -228,7 +241,7 @@ export default function InvoiceCreatePage() {
               />
             </label>
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">student_number</span>
+              <span className="text-[color:var(--muted)]">学籍番号</span>
               <input
                 className="w-full"
                 value={filters.student_number}
@@ -241,7 +254,7 @@ export default function InvoiceCreatePage() {
               />
             </label>
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">generation</span>
+              <span className="text-[color:var(--muted)]">代</span>
               <input
                 className="w-full"
                 value={filters.generation}
@@ -254,7 +267,7 @@ export default function InvoiceCreatePage() {
               />
             </label>
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">gender</span>
+              <span className="text-[color:var(--muted)]">性別</span>
               <select
                 className="w-full"
                 value={filters.gender}
@@ -265,10 +278,10 @@ export default function InvoiceCreatePage() {
                   }))
                 }
               >
-                <option value="">all</option>
-                <option value="male">male</option>
-                <option value="female">female</option>
-                <option value="other">other</option>
+                <option value="">すべて</option>
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
               </select>
             </label>
           </div>
@@ -280,7 +293,7 @@ export default function InvoiceCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineMagnifyingGlass className="text-base" />
-                Search
+                検索
               </span>
             </button>
             <button
@@ -293,7 +306,7 @@ export default function InvoiceCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineArrowPath className="text-base" />
-                Reset
+                リセット
               </span>
             </button>
           </div>
@@ -303,12 +316,12 @@ export default function InvoiceCreatePage() {
       <section className="section">
         <h2 className="section-title flex items-center gap-2">
           <HiOutlineReceiptRefund className="text-base" />
-          Create invoice
+          請求を作成
         </h2>
         <div className="card space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">amount</span>
+              <span className="text-[color:var(--muted)]">金額</span>
               <input
                 className="w-full"
                 type="number"
@@ -318,7 +331,7 @@ export default function InvoiceCreatePage() {
               />
             </label>
             <label className="field text-sm">
-              <span className="text-[color:var(--muted)]">title</span>
+              <span className="text-[color:var(--muted)]">件名</span>
               <input
                 className="w-full"
                 value={title}
@@ -326,7 +339,7 @@ export default function InvoiceCreatePage() {
               />
             </label>
             <label className="field text-sm md:col-span-2">
-              <span className="text-[color:var(--muted)]">description</span>
+              <span className="text-[color:var(--muted)]">内容</span>
               <input
                 className="w-full"
                 value={description}
@@ -342,7 +355,7 @@ export default function InvoiceCreatePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <HiOutlineCheckCircle className="text-base" />
-                Create invoices
+                請求を作成
               </span>
             </button>
             {message ? <p className="text-sm">{message}</p> : null}
@@ -354,7 +367,7 @@ export default function InvoiceCreatePage() {
         <div className="inline-list">
           <h2 className="section-title flex items-center gap-2">
             <HiOutlineUserGroup className="text-base" />
-            Accounts
+            アカウント
           </h2>
           <button
             className="btn btn-ghost"
@@ -363,24 +376,24 @@ export default function InvoiceCreatePage() {
           >
             <span className="inline-flex items-center gap-2">
               <HiOutlineSquares2X2 className="text-base" />
-              {allSelected ? "Unselect all" : "Select all"}
+              {allSelected ? "全解除" : "全選択"}
             </span>
           </button>
         </div>
-        {loading ? <p className="text-sm">loading...</p> : null}
+        {loading ? <p className="text-sm">読み込み中...</p> : null}
         {!loading && users.length === 0 ? (
-          <p className="text-sm">no accounts</p>
+          <p className="text-sm">アカウントがありません</p>
         ) : null}
         {users.length > 0 ? (
           <div className="table-wrap">
             <table className="min-w-[720px] w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left">select</th>
-                  <th className="text-left">display_name</th>
-                  <th className="text-left">student_number</th>
-                  <th className="text-left">generation</th>
-                  <th className="text-left">gender</th>
+                  <th className="text-left">選択</th>
+                  <th className="text-left">表示名</th>
+                  <th className="text-left">学籍番号</th>
+                  <th className="text-left">代</th>
+                  <th className="text-left">性別</th>
                 </tr>
               </thead>
               <tbody>

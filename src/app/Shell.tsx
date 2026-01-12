@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   HiOutlineClipboardDocumentList,
-  HiOutlineDocumentChartBar,
-  HiOutlineDocumentDuplicate,
+  HiOutlineChartBar,
   HiOutlineDocumentText,
   HiOutlineHome,
   HiOutlinePencilSquare,
+  HiOutlinePlusCircle,
   HiOutlineReceiptRefund,
-  HiOutlineSquares2X2,
-  HiOutlineUser,
+  HiOutlineTrash,
+  HiOutlineUserCircle,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
 import SidebarFooter from "./SidebarFooter";
@@ -54,33 +54,33 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       case "Profiles":
         return <HiOutlineUserGroup />;
       case "Profile Edit":
-        return <HiOutlinePencilSquare />;
+        return <HiOutlineUserCircle />;
       case "Profile Create":
-        return <HiOutlineUser />;
+        return <HiOutlinePlusCircle />;
       case "Profile Delete":
-        return <HiOutlineDocumentDuplicate />;
+        return <HiOutlineTrash />;
       case "Profile List":
-        return <HiOutlineSquares2X2 />;
+        return <HiOutlineClipboardDocumentList />;
       case "Invoices":
         return <HiOutlineReceiptRefund />;
       case "Invoice Create":
-        return <HiOutlineDocumentText />;
+        return <HiOutlinePlusCircle />;
       case "Logs":
         return <HiOutlineDocumentText />;
       case "Account Logs":
-        return <HiOutlineDocumentDuplicate />;
+        return <HiOutlineUserCircle />;
       case "Invoice Logs":
-        return <HiOutlineDocumentChartBar />;
+        return <HiOutlineReceiptRefund />;
       case "Surveys":
         return <HiOutlineClipboardDocumentList />;
       case "Survey Create":
-        return <HiOutlinePencilSquare />;
+        return <HiOutlinePlusCircle />;
       case "Survey Edit":
         return <HiOutlinePencilSquare />;
       case "Survey Detail":
         return <HiOutlineDocumentText />;
       case "Survey Analytics":
-        return <HiOutlineDocumentChartBar />;
+        return <HiOutlineChartBar />;
       default:
         return <HiOutlineHome />;
     }

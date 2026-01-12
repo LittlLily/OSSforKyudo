@@ -25,7 +25,7 @@ export default function AdminProfileCreatePage() {
           user?: { email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok) throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
@@ -34,20 +34,20 @@ export default function AdminProfileCreatePage() {
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
@@ -55,10 +55,10 @@ export default function AdminProfileCreatePage() {
   if (auth.role !== "admin") {
     return (
       <main className="page">
-        <p className="text-sm">forbidden</p>
+        <p className="text-sm">権限がありません</p>
         <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
           <HiOutlineArrowLeft className="text-base" />
-          Back
+          戻る
         </Link>
       </main>
     );
@@ -69,7 +69,7 @@ export default function AdminProfileCreatePage() {
       <AdminCreateUserForm />
       <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
         <HiOutlineArrowLeft className="text-base" />
-        Back
+        戻る
       </Link>
     </main>
   );
