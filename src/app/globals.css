@@ -28,7 +28,7 @@
   }
 
   main {
-    @apply rounded-3xl bg-[color:var(--surface-strong)] p-6;
+    @apply mx-auto w-[100%] rounded-3xl bg-[color:var(--surface-strong)] p-0;
   }
 
   a {

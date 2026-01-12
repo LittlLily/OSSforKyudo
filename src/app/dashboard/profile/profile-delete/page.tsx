@@ -135,7 +135,7 @@ export default function AdminProfileDeletePage() {
   }
 
   return (
-    <main className="page max-w-xl">
+    <main className="page">
       {list.status === "loading" ? (
         <p className="text-sm">loading...</p>
       ) : list.status === "error" ? (

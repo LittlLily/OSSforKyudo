@@ -63,7 +63,7 @@ export default function AdminProfileCreatePage() {
   }
 
   return (
-    <main className="page max-w-xl">
+    <main className="page">
       <AdminCreateUserForm />
       <Link className="btn btn-ghost" href="/dashboard/profile">
         Back

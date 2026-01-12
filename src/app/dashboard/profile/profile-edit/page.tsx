@@ -198,7 +198,7 @@ export default function AdminProfileEditPage() {
   }
 
   return (
-    <main className="page max-w-xl">
+    <main className="page">
       <div className="card space-y-4">
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">

@@ -10,7 +10,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const currentLabel = (() => {
     const path = pathname ?? "/";
     if (path === "/") return "Dashboard";
-    if (path.startsWith("/dashboard/profile/profile-edit")) return "Profile Edit";
+    if (path.startsWith("/dashboard/profile/profile-edit"))
+      return "Profile Edit";
     if (path.startsWith("/dashboard/profile/profile-create"))
       return "Profile Create";
     if (path.startsWith("/dashboard/profile/profile-delete"))
@@ -60,7 +61,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {currentLabel}
           </h2>
         </header>
-        <div className="px-7 py-6 max-[900px]:px-4">{children}</div>
+        <div className="flex justify-center px-7 py-6 max-[900px]:px-4">
+          {children}
+        </div>
       </div>
     </div>
   );
