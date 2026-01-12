@@ -2,24 +2,40 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { signOut } from "@/app/actions/auth";
 
-type SessionState =
+type ViewState =
   | { status: "loading" }
-  | { status: "ok"; session: "yes" | "no" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      displayName?: string | null;
+    }
   | { status: "error"; message: string };
 
 export default function Home() {
-  const [state, setState] = useState<SessionState>({ status: "loading" });
+  const [state, setState] = useState<ViewState>({ status: "loading" });
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/session", { cache: "no-store" });
-        const data = (await res.json()) as { user?: { id: string } | null; error?: string };
-        if (!res.ok) throw new Error(data.error || "failed to load session");
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = "/login?next=/";
+          return;
+        }
+        const data = (await res.json()) as {
+          user?: { email?: string | null; role?: "admin" | "user" };
+          profile?: { displayName?: string | null };
+          error?: string;
+        };
+        if (!res.ok) throw new Error(data.error || "failed to load user");
         setState({
-          status: "ok",
-          session: data.user ? "yes" : "no",
+          status: "authed",
+          email: data.user?.email ?? "",
+          role: data.user?.role ?? "user",
+          displayName: data.profile?.displayName ?? null,
         });
       } catch (err) {
         setState({
@@ -30,22 +46,43 @@ export default function Home() {
     })();
   }, []);
 
-  const msg =
-    state.status === "loading"
-      ? "checking..."
-      : state.status === "error"
-      ? `error: ${state.message}`
-      : `ok: session=${state.session}`;
+  if (state.status === "loading")
+    return <main className="p-6">loading...</main>;
+
+  if (state.status === "error") {
+    return (
+      <main className="p-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="mt-4">error: {state.message}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold">Supabase connection test</h1>
-      <p className="mt-4">{msg}</p>
-      <p className="mt-4">
-        <Link className="underline" href="/login">
-          Go to login
-        </Link>
-      </p>
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <Link href="/dashboard/profile">
+        <h2 className="text-lg font-semibold">profile</h2>
+      </Link>
+      <Link href="/dashboard/invoices">
+        <h2 className="text-lg font-semibold">invoices</h2>
+      </Link>
+      <Link href="/dashboard/surveys">
+        <h2 className="text-lg font-semibold">surveys</h2>
+      </Link>
+      <p className="mt-4">Welcome, {state.email}</p>
+      {state.displayName ? (
+        <p className="mt-1 text-sm">name: {state.displayName}</p>
+      ) : null}
+      <p className="mt-1 text-sm flex items-center gap-3">role: {state.role}</p>
+
+      <div className="mt-6 flex gap-3">
+        <form action={signOut}>
+          <button className="border rounded px-4 py-2" type="submit">
+            Sign out
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

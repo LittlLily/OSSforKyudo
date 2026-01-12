@@ -46,7 +46,7 @@ export default function AdminProfilePage() {
     return (
       <main className="p-6">
         <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+          <Link className="inline-block border rounded px-3 py-1" href="/">
             Dashboard
           </Link>
         </div>
@@ -59,7 +59,7 @@ export default function AdminProfilePage() {
   return (
     <main className="p-6">
       <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+        <Link className="inline-block border rounded px-3 py-1" href="/">
           Dashboard
         </Link>
       </div>

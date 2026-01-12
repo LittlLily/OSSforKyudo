@@ -182,7 +182,7 @@ export default function AdminProfileEditPage() {
     return (
       <main className="p-6">
         <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+          <Link className="inline-block border rounded px-3 py-1" href="/">
             Dashboard
           </Link>
         </div>
@@ -196,13 +196,13 @@ export default function AdminProfileEditPage() {
     return (
       <main className="p-6">
         <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+          <Link className="inline-block border rounded px-3 py-1" href="/">
             Dashboard
           </Link>
         </div>
         <h1 className="text-2xl font-bold">Profile edit</h1>
         <p className="mt-4">forbidden</p>
-        <Link className="mt-4 inline-block underline" href="/dashboard">
+        <Link className="mt-4 inline-block underline" href="/">
           Back
         </Link>
       </main>
@@ -212,7 +212,7 @@ export default function AdminProfileEditPage() {
   return (
     <main className="p-6 max-w-xl">
       <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/dashboard">
+        <Link className="inline-block border rounded px-3 py-1" href="/">
           Dashboard
         </Link>
       </div>
