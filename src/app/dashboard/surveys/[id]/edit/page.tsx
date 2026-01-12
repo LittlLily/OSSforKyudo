@@ -155,7 +155,7 @@ export default function SurveyEditPage() {
         );
         setIsAnonymous(Boolean(data.survey.is_anonymous));
         setSelectedAccounts(data.targets ?? []);
-        const loadedQuestions =
+        const loadedQuestions: QuestionForm[] =
           data.questions?.map((question) => ({
             prompt: question.prompt ?? "",
             type: question.type === "multiple" ? "multiple" : "single",

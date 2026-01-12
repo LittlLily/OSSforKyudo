@@ -59,8 +59,9 @@ type QuestionPayload = {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = await requireUser();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
@@ -85,7 +86,7 @@ export async function GET(
       .select(
         "id, title, description, status, opens_at, closes_at, is_anonymous, created_at, created_by"
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .maybeSingle();
     if (surveyResponse.error) throw surveyResponse.error;
     if (!surveyResponse.data) {
@@ -95,7 +96,7 @@ export async function GET(
     const questionResponse = await adminClient
       .from("survey_questions")
       .select("id, prompt, type, allow_option_add, position")
-      .eq("survey_id", params.id)
+      .eq("survey_id", id)
       .order("position", { ascending: true });
     if (questionResponse.error) throw questionResponse.error;
     const questions = questionResponse.data ?? [];
@@ -121,7 +122,7 @@ export async function GET(
     const targetsResponse = await adminClient
       .from("survey_targets")
       .select("account_id")
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (targetsResponse.error) throw targetsResponse.error;
     const targetAccountIds = (targetsResponse.data ?? []).map(
       (row) => row.account_id as string
@@ -162,8 +163,9 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = await requireUser();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
@@ -255,13 +257,13 @@ export async function POST(
         closes_at: body.closes_at ?? null,
         is_anonymous: Boolean(body.is_anonymous),
       })
-      .eq("id", params.id);
+      .eq("id", id);
     if (updateResponse.error) throw updateResponse.error;
 
     const responseIdResponse = await adminClient
       .from("survey_responses")
       .select("id")
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (responseIdResponse.error) throw responseIdResponse.error;
 
     const responseIds = (responseIdResponse.data ?? []).map(
@@ -278,13 +280,13 @@ export async function POST(
     const responsesDelete = await adminClient
       .from("survey_responses")
       .delete()
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (responsesDelete.error) throw responsesDelete.error;
 
     const questionIdResponse = await adminClient
       .from("survey_questions")
       .select("id")
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (questionIdResponse.error) throw questionIdResponse.error;
 
     const questionIds = (questionIdResponse.data ?? []).map(
@@ -301,17 +303,17 @@ export async function POST(
     const deleteQuestions = await adminClient
       .from("survey_questions")
       .delete()
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (deleteQuestions.error) throw deleteQuestions.error;
 
     const deleteTargets = await adminClient
       .from("survey_targets")
       .delete()
-      .eq("survey_id", params.id);
+      .eq("survey_id", id);
     if (deleteTargets.error) throw deleteTargets.error;
 
     const questionRows = normalizedQuestions.map((question, index) => ({
-      survey_id: params.id,
+      survey_id: id,
       prompt: question.prompt,
       type: question.type,
       allow_option_add: question.allowOptionAdd,
@@ -354,7 +356,7 @@ export async function POST(
 
     const uniqueAccountIds = Array.from(new Set(accountIds));
     const targetRows = uniqueAccountIds.map((accountId) => ({
-      survey_id: params.id,
+      survey_id: id,
       account_id: accountId,
     }));
     const insertTargets = await adminClient
