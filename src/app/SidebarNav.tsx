@@ -10,6 +10,7 @@ import {
   HiOutlineReceiptRefund,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
+import { TbBow } from "react-icons/tb";
 
 type NavItem = {
   label: string;
@@ -26,6 +27,18 @@ const navItems: NavItem[] = [
     icon: <HiOutlineHome />,
   },
   {
+    label: "Surveys",
+    href: "/dashboard/surveys",
+    match: (path) => path.startsWith("/dashboard/surveys"),
+    icon: <HiOutlineClipboardDocumentList />,
+  },
+  {
+    label: "Japanese Bows",
+    href: "/dashboard/bows",
+    match: (path) => path.startsWith("/dashboard/bows"),
+    icon: <TbBow />,
+  },
+  {
     label: "Profiles",
     href: "/dashboard/profile",
     match: (path) => path.startsWith("/dashboard/profile"),
@@ -36,12 +49,6 @@ const navItems: NavItem[] = [
     href: "/dashboard/invoices",
     match: (path) => path.startsWith("/dashboard/invoices"),
     icon: <HiOutlineReceiptRefund />,
-  },
-  {
-    label: "Surveys",
-    href: "/dashboard/surveys",
-    match: (path) => path.startsWith("/dashboard/surveys"),
-    icon: <HiOutlineClipboardDocumentList />,
   },
   {
     label: "Logs",

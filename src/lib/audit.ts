@@ -15,6 +15,12 @@ type InvoiceLogInsert = {
   detail?: string | null;
 };
 
+type BowLogInsert = {
+  action: string;
+  operatorId?: string | null;
+  bowNumber?: string | null;
+};
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AdminClient = SupabaseClient;
@@ -51,5 +57,20 @@ export async function logInvoiceAction(
 
   if (error) {
     console.error("invoice_logs insert failed", error.message ?? error);
+  }
+}
+
+export async function logBowAction(
+  adminClient: AdminClient,
+  entry: BowLogInsert
+) {
+  const { error } = await adminClient.from("bow_logs").insert({
+    action: entry.action,
+    operator_id: entry.operatorId ?? null,
+    bow_number: entry.bowNumber ?? null,
+  });
+
+  if (error) {
+    console.error("bow_logs insert failed", error.message ?? error);
   }
 }

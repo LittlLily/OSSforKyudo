@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
+  HiOutlineArrowRightCircle,
   HiOutlineClipboardDocumentList,
   HiOutlineChartBar,
   HiOutlineDocumentText,
@@ -14,6 +15,7 @@ import {
   HiOutlineUserCircle,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
+import { TbBow } from "react-icons/tb";
 import SidebarFooter from "./SidebarFooter";
 import SidebarNav from "./SidebarNav";
 
@@ -33,10 +35,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     if (path.startsWith("/dashboard/profile/profile-list"))
       return "Profile List";
     if (path.startsWith("/dashboard/profile")) return "Profiles";
+    if (path.startsWith("/dashboard/bows/bow-list")) return "Bow List";
+    if (path.startsWith("/dashboard/bows/bow-create")) return "Bow Create";
+    if (path.startsWith("/dashboard/bows/bow-edit")) return "Bow Edit";
+    if (path.startsWith("/dashboard/bows/bow-delete")) return "Bow Delete";
+    if (path.startsWith("/dashboard/bows/bow-loan")) return "Bow Loan";
+    if (path.startsWith("/dashboard/bows")) return "Japanese Bows";
     if (path.startsWith("/dashboard/invoices/create")) return "Invoice Create";
     if (path.startsWith("/dashboard/invoices")) return "Invoices";
     if (path.startsWith("/dashboard/logs/account")) return "Account Logs";
     if (path.startsWith("/dashboard/logs/invoices")) return "Invoice Logs";
+    if (path.startsWith("/dashboard/logs/bows")) return "Bow Logs";
     if (path.startsWith("/dashboard/logs")) return "Logs";
     if (path.startsWith("/dashboard/surveys/analytics"))
       return "Survey Analytics";
@@ -61,6 +70,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         return <HiOutlineTrash />;
       case "Profile List":
         return <HiOutlineClipboardDocumentList />;
+      case "Japanese Bows":
+        return <TbBow />;
+      case "Bow List":
+        return <HiOutlineClipboardDocumentList />;
+      case "Bow Create":
+        return <HiOutlinePlusCircle />;
+      case "Bow Edit":
+        return <HiOutlinePencilSquare />;
+      case "Bow Delete":
+        return <HiOutlineTrash />;
+      case "Bow Loan":
+        return <HiOutlineArrowRightCircle />;
       case "Invoices":
         return <HiOutlineReceiptRefund />;
       case "Invoice Create":
@@ -71,6 +92,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         return <HiOutlineUserCircle />;
       case "Invoice Logs":
         return <HiOutlineReceiptRefund />;
+      case "Bow Logs":
+        return <TbBow />;
       case "Surveys":
         return <HiOutlineClipboardDocumentList />;
       case "Survey Create":
