@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,7 +15,7 @@ type NavItem = {
   label: string;
   href: string;
   match: (pathname: string) => boolean;
-  icon: JSX.Element;
+  icon: ReactNode;
 };
 
 const navItems: NavItem[] = [
