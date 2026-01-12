@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logInvoiceAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 type AuthResult =
-  | { ok: true; role: "admin" | "user" }
+  | { ok: true; role: "admin" | "user"; userId: string }
   | { ok: false; status: number; message: string };
 
 async function requireAdmin(): Promise<AuthResult> {
@@ -28,7 +29,7 @@ async function requireAdmin(): Promise<AuthResult> {
     return { ok: false, status: 403, message: "forbidden" };
   }
 
-  return { ok: true, role };
+  return { ok: true, role, userId: data.user.id };
 }
 
 function getAdminClient() {
@@ -69,6 +70,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "id required" }, { status: 400 });
     }
 
+    const currentResponse = await adminClient
+      .from("invoices")
+      .select("id, account_id, title, description")
+      .eq("id", id)
+      .maybeSingle();
+    if (currentResponse.error) {
+      throw currentResponse.error;
+    }
+
     const amount = body.amount;
     if (typeof amount !== "number" || Number.isNaN(amount) || amount <= 0) {
       return NextResponse.json(
@@ -97,6 +107,16 @@ export async function POST(request: Request) {
     if (!updateResponse.data || updateResponse.data.length === 0) {
       return NextResponse.json({ error: "invoice not found" }, { status: 404 });
     }
+
+    const updatedInvoice = updateResponse.data?.[0];
+    await logInvoiceAction(adminClient, {
+      action: "請求更新",
+      operatorId: auth.userId,
+      subjectUserId: currentResponse.data?.account_id ?? null,
+      invoiceId: currentResponse.data?.id ?? null,
+      targetLabel: updatedInvoice?.title ?? currentResponse.data?.title ?? "請求",
+      detail: updatedInvoice?.description ?? currentResponse.data?.description ?? null,
+    });
 
     return NextResponse.json({ invoice: updateResponse.data?.[0] ?? null });
   } catch (error) {

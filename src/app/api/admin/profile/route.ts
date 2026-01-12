@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logAccountAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -37,7 +38,7 @@ async function requireAdmin() {
     return { ok: false, status: 403, message: "forbidden" };
   }
 
-  return { ok: true };
+  return { ok: true, userId: data.user.id };
 }
 
 function getAdminClient() {
@@ -141,6 +142,13 @@ export async function GET(request: Request) {
 
   const role =
     (userData.user?.app_metadata?.role as RoleUpdate | undefined) ?? "user";
+
+  await logAccountAction(adminClient, {
+    action: "プロフィール取得",
+    operatorId: auth.userId,
+    targetId: id,
+    subjectUserId: id,
+  });
 
   return NextResponse.json({ profile: data, role });
 }
@@ -270,6 +278,13 @@ export async function POST(request: Request) {
   if (!data && Object.keys(update).length > 0) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
+
+  await logAccountAction(adminClient, {
+    action: "プロフィール更新",
+    operatorId: auth.userId,
+    targetId: id,
+    subjectUserId: id,
+  });
 
   return NextResponse.json({ ok: true, id });
 }

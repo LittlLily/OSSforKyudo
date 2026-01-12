@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logAccountAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -84,6 +85,13 @@ export async function GET() {
         role: (user.app_metadata?.role as "admin" | "user") ?? "user",
       }));
 
+    await logAccountAction(adminClient, {
+      action: "削除対象一覧取得",
+      operatorId: auth.userId,
+      subjectUserId: auth.userId,
+      targetLabel: "一覧",
+    });
+
     return NextResponse.json({ users: list });
   } catch (error) {
     return NextResponse.json(
@@ -123,6 +131,13 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    await logAccountAction(adminClient, {
+      action: "プロフィール削除",
+      operatorId: auth.userId,
+      targetId: targetId,
+      subjectUserId: targetId,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

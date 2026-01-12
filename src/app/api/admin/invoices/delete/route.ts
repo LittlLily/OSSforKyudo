@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { logInvoiceAction } from "@/lib/audit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 type AuthResult =
-  | { ok: true; role: "admin" | "user" }
+  | { ok: true; role: "admin" | "user"; userId: string }
   | { ok: false; status: number; message: string };
 
 async function requireAdmin(): Promise<AuthResult> {
@@ -28,7 +29,7 @@ async function requireAdmin(): Promise<AuthResult> {
     return { ok: false, status: 403, message: "forbidden" };
   }
 
-  return { ok: true, role };
+  return { ok: true, role, userId: data.user.id };
 }
 
 function getAdminClient() {
@@ -63,6 +64,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "id required" }, { status: 400 });
     }
 
+    const invoiceLookup = await adminClient
+      .from("invoices")
+      .select("id, account_id, title, description")
+      .eq("id", id)
+      .maybeSingle();
+    if (invoiceLookup.error) {
+      throw invoiceLookup.error;
+    }
+
     const deleteResponse = await adminClient
       .from("invoices")
       .delete()
@@ -71,6 +81,17 @@ export async function POST(request: Request) {
 
     if (deleteResponse.error) {
       throw deleteResponse.error;
+    }
+
+    if (invoiceLookup.data) {
+      await logInvoiceAction(adminClient, {
+        action: "請求削除",
+        operatorId: auth.userId,
+        subjectUserId: invoiceLookup.data.account_id ?? null,
+        invoiceId: invoiceLookup.data.id ?? id,
+        targetLabel: invoiceLookup.data.title ?? "請求",
+        detail: invoiceLookup.data.description ?? null,
+      });
     }
 
     return NextResponse.json({ deleted: true });

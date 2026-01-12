@@ -21,6 +21,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     if (path.startsWith("/dashboard/profile")) return "Profiles";
     if (path.startsWith("/dashboard/invoices/create")) return "Invoice Create";
     if (path.startsWith("/dashboard/invoices")) return "Invoices";
+    if (path.startsWith("/dashboard/logs/account")) return "Account Logs";
+    if (path.startsWith("/dashboard/logs/invoices")) return "Invoice Logs";
+    if (path.startsWith("/dashboard/logs")) return "Logs";
     if (path.startsWith("/dashboard/surveys/analytics"))
       return "Survey Analytics";
     if (path.startsWith("/dashboard/surveys/create")) return "Survey Create";
