@@ -260,19 +260,13 @@ export default function InvoicesPage() {
   };
 
   if (auth.status === "loading") {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   if (auth.status === "error") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Invoices</h1>
-        <p className="mt-4">error: {auth.message}</p>
+      <main className="page">
+        <p className="text-sm">error: {auth.message}</p>
       </main>
     );
   }
@@ -280,174 +274,173 @@ export default function InvoicesPage() {
   const isAdmin = auth.role === "admin";
 
   return (
-    <main className="p-6">
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <Link className="inline-block border rounded px-3 py-1" href="/">
-          Dashboard
-        </Link>
-        {isAdmin ? (
-          <Link
-            className="inline-block border rounded px-3 py-1"
-            href="/dashboard/invoices/create"
-          >
+    <main className="page">
+      {isAdmin ? (
+        <div className="inline-list">
+          <Link className="btn btn-primary" href="/dashboard/invoices/create">
             Create invoice
           </Link>
-        ) : null}
-      </div>
-      <h1 className="text-2xl font-bold">Invoices</h1>
-      <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
+        </div>
+      ) : null}
 
-      <section className="mt-6 flex flex-wrap gap-3">
-        <button
-          className={`border rounded px-4 py-2 ${
-            statusFilter === "pending" ? "bg-gray-100" : ""
-          }`}
-          onClick={() => {
-            setStatusFilter("pending");
-            void loadInvoices(undefined, "pending");
-          }}
-          type="button"
-        >
-          Pending
-        </button>
-        <button
-          className={`border rounded px-4 py-2 ${
-            statusFilter === "approved" ? "bg-gray-100" : ""
-          }`}
-          onClick={() => {
-            setStatusFilter("approved");
-            void loadInvoices(undefined, "approved");
-          }}
-          type="button"
-        >
-          Approved
-        </button>
+      <section className="section">
+        <div className="inline-list">
+          <button
+            className={`btn ${
+              statusFilter === "pending" ? "btn-primary" : "btn-ghost"
+            }`}
+            onClick={() => {
+              setStatusFilter("pending");
+              void loadInvoices(undefined, "pending");
+            }}
+            type="button"
+          >
+            Pending
+          </button>
+          <button
+            className={`btn ${
+              statusFilter === "approved" ? "btn-primary" : "btn-ghost"
+            }`}
+            onClick={() => {
+              setStatusFilter("approved");
+              void loadInvoices(undefined, "approved");
+            }}
+            type="button"
+          >
+            Approved
+          </button>
+        </div>
       </section>
 
       {isAdmin ? (
-        <section className="mt-6">
-          <h2 className="text-lg font-semibold">Filters</h2>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <label className="text-sm">
-              display_name
-              <input
-                className="mt-1 w-full border rounded px-2 py-1"
-                value={filters.display_name}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    display_name: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-sm">
-              student_number
-              <input
-                className="mt-1 w-full border rounded px-2 py-1"
-                value={filters.student_number}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    student_number: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-sm">
-              generation
-              <input
-                className="mt-1 w-full border rounded px-2 py-1"
-                value={filters.generation}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    generation: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-sm">
-              gender
-              <select
-                className="mt-1 w-full border rounded px-2 py-1"
-                value={filters.gender}
-                onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, gender: event.target.value }))
-                }
+        <section className="section">
+          <h2 className="section-title">Filters</h2>
+          <div className="card space-y-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="field text-sm">
+                <span className="text-[color:var(--muted)]">display_name</span>
+                <input
+                  className="w-full"
+                  value={filters.display_name}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      display_name: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field text-sm">
+                <span className="text-[color:var(--muted)]">student_number</span>
+                <input
+                  className="w-full"
+                  value={filters.student_number}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      student_number: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field text-sm">
+                <span className="text-[color:var(--muted)]">generation</span>
+                <input
+                  className="w-full"
+                  value={filters.generation}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      generation: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field text-sm">
+                <span className="text-[color:var(--muted)]">gender</span>
+                <select
+                  className="w-full"
+                  value={filters.gender}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      gender: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">all</option>
+                  <option value="male">male</option>
+                  <option value="female">female</option>
+                  <option value="other">other</option>
+                </select>
+              </label>
+            </div>
+            <div className="inline-list">
+              <button
+                className="btn btn-primary"
+                onClick={() => void loadInvoices()}
+                type="button"
               >
-                <option value="">all</option>
-                <option value="male">male</option>
-                <option value="female">female</option>
-                <option value="other">other</option>
-              </select>
-            </label>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              className="border rounded px-4 py-2"
-              onClick={() => void loadInvoices()}
-              type="button"
-            >
-              Search
-            </button>
-            <button
-              className="border rounded px-4 py-2"
-              onClick={() => {
-                setFilters(emptyFilters);
-                void loadInvoices(emptyFilters);
-              }}
-              type="button"
-            >
-              Reset
-            </button>
+                Search
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setFilters(emptyFilters);
+                  void loadInvoices(emptyFilters);
+                }}
+                type="button"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </section>
       ) : null}
 
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">
+      <section className="section">
+        <h2 className="section-title">
           {statusFilter === "pending" ? "Pending invoices" : "Approved invoices"}
         </h2>
-        {message ? <p className="mt-2 text-sm">{message}</p> : null}
-        {loading ? <p className="mt-3">loading...</p> : null}
+        {message ? <p className="text-sm">{message}</p> : null}
+        {loading ? <p className="text-sm">loading...</p> : null}
         {!loading && sortedInvoices.length === 0 ? (
-          <p className="mt-3 text-sm">no invoices</p>
+          <p className="text-sm">no invoices</p>
         ) : null}
         {sortedInvoices.length > 0 ? (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-[960px] w-full border-collapse text-sm">
+          <div className="table-wrap">
+            <table className="min-w-[960px] w-full text-sm">
               <thead>
-                <tr className="border-b">
-                  <th className="px-3 py-2 text-left">student_number</th>
-                  <th className="px-3 py-2 text-left">display_name</th>
-                  <th className="px-3 py-2 text-left">amount</th>
-                  <th className="px-3 py-2 text-left">billed_at</th>
+                <tr>
+                  <th className="text-left">student_number</th>
+                  <th className="text-left">display_name</th>
+                  <th className="text-left">amount</th>
+                  <th className="text-left">billed_at</th>
                   {statusFilter === "approved" ? (
-                    <th className="px-3 py-2 text-left">approved_at</th>
+                    <th className="text-left">approved_at</th>
                   ) : null}
                   {statusFilter === "approved" ? (
-                    <th className="px-3 py-2 text-left">approver</th>
+                    <th className="text-left">approver</th>
                   ) : null}
-                  <th className="px-3 py-2 text-left">requester</th>
-                  <th className="px-3 py-2 text-left">title</th>
-                  <th className="px-3 py-2 text-left">description</th>
-                  <th className="px-3 py-2 text-left">actions</th>
+                  <th className="text-left">requester</th>
+                  <th className="text-left">title</th>
+                  <th className="text-left">description</th>
+                  <th className="text-left">actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="border-b">
-                    <td className="px-3 py-2">
+                  <tr key={invoice.id}>
+                    <td>
                       {invoice.account_student_number ?? "-"}
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {invoice.account_display_name ?? "-"}
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {editingId === invoice.id ? (
                         <input
-                          className="w-24 border rounded px-2 py-1"
+                          className="w-24"
                           type="number"
                           min={1}
                           value={editForm.amount}
@@ -462,28 +455,28 @@ export default function InvoicesPage() {
                         invoice.amount
                       )}
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {billedAtLabel(invoice.billed_at)}
                     </td>
                     {statusFilter === "approved" ? (
-                      <td className="px-3 py-2">
+                      <td>
                         {invoice.approved_at
                           ? billedAtLabel(invoice.approved_at)
                           : "-"}
                       </td>
                     ) : null}
                     {statusFilter === "approved" ? (
-                      <td className="px-3 py-2">
+                      <td>
                         {invoice.approver_display_name ?? "-"}
                       </td>
                     ) : null}
-                    <td className="px-3 py-2">
+                    <td>
                       {invoice.requester_display_name ?? "-"}
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {editingId === invoice.id ? (
                         <input
-                          className="w-full border rounded px-2 py-1"
+                          className="w-full"
                           value={editForm.title}
                           onChange={(event) =>
                             setEditForm((prev) => ({
@@ -496,10 +489,10 @@ export default function InvoicesPage() {
                         invoice.title ?? "-"
                       )}
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       {editingId === invoice.id ? (
                         <input
-                          className="w-full border rounded px-2 py-1"
+                          className="w-full"
                           value={editForm.description}
                           onChange={(event) =>
                             setEditForm((prev) => ({
@@ -512,20 +505,20 @@ export default function InvoicesPage() {
                         invoice.description ?? "-"
                       )}
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-wrap gap-2">
+                    <td>
+                      <div className="inline-list">
                         {isAdmin ? (
                           statusFilter === "approved" ? (
                             <>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-ghost"
                                 onClick={() => void revertInvoice(invoice.id)}
                                 type="button"
                               >
                                 Revert
                               </button>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >
@@ -535,14 +528,14 @@ export default function InvoicesPage() {
                           ) : editingId === invoice.id ? (
                             <>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-primary"
                                 onClick={() => void saveEdit(invoice.id)}
                                 type="button"
                               >
                                 Save
                               </button>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-ghost"
                                 onClick={cancelEdit}
                                 type="button"
                               >
@@ -552,21 +545,21 @@ export default function InvoicesPage() {
                           ) : (
                             <>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-ghost"
                                 onClick={() => beginEdit(invoice)}
                                 type="button"
                               >
                                 Edit
                               </button>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-primary"
                                 onClick={() => void approveInvoice(invoice.id)}
                                 type="button"
                               >
                                 Approve
                               </button>
                               <button
-                                className="border rounded px-2 py-1"
+                                className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >

@@ -287,31 +287,32 @@ export default function SurveyCreatePage() {
     }
   };
 
-  if (auth.status === "loading") return <main className="p-6">loading...</main>;
+  if (auth.status === "loading") return <main className="page">loading...</main>;
   if (auth.status === "error") {
     return (
-      <main className="p-6">
+      <main className="page">
         <p>error: {auth.message}</p>
       </main>
     );
   }
 
   return (
-    <main className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Link className="underline" href="/dashboard/surveys">
+    <main className="page">
+      <div className="inline-list">
+        <Link className="btn btn-ghost" href="/dashboard/surveys">
           Back
         </Link>
-        <h1 className="text-2xl font-bold">Create survey</h1>
       </div>
 
       {message ? <p className="text-sm">error: {message}</p> : null}
 
-      <section className="space-y-3">
-        <div>
-          <label className="block text-sm font-semibold">Title</label>
+      <section className="section">
+        <div className="field">
+          <label className="text-sm font-semibold text-[color:var(--muted)]">
+            Title
+          </label>
           <input
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
@@ -319,20 +320,24 @@ export default function SurveyCreatePage() {
             <p className="mt-1 text-sm text-red-600">{errors.title}</p>
           ) : null}
         </div>
-        <div>
-          <label className="block text-sm font-semibold">Description</label>
+        <div className="field">
+          <label className="text-sm font-semibold text-[color:var(--muted)]">
+            Description
+          </label>
           <textarea
-            className="mt-1 w-full border rounded px-3 py-2"
+            className="w-full"
             rows={3}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
         <div className="flex flex-wrap gap-4">
-          <div>
-            <label className="block text-sm font-semibold">Status</label>
+          <div className="field">
+            <label className="text-sm font-semibold text-[color:var(--muted)]">
+              Status
+            </label>
             <select
-              className="mt-1 border rounded px-3 py-2"
+              className="w-36"
               value={status}
               onChange={(event) =>
                 setStatus(event.target.value as "draft" | "open" | "closed")
@@ -343,25 +348,29 @@ export default function SurveyCreatePage() {
               <option value="closed">closed</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-semibold">Open at</label>
+          <div className="field">
+            <label className="text-sm font-semibold text-[color:var(--muted)]">
+              Open at
+            </label>
             <input
-              className="mt-1 border rounded px-3 py-2"
+              className="w-52"
               type="datetime-local"
               value={opensAt}
               onChange={(event) => setOpensAt(event.target.value)}
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold">Close at</label>
+          <div className="field">
+            <label className="text-sm font-semibold text-[color:var(--muted)]">
+              Close at
+            </label>
             <input
-              className="mt-1 border rounded px-3 py-2"
+              className="w-52"
               type="datetime-local"
               value={closesAt}
               onChange={(event) => setClosesAt(event.target.value)}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="inline-list text-sm">
             <input
               type="checkbox"
               checked={isAnonymous}
@@ -372,12 +381,12 @@ export default function SurveyCreatePage() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Targets</h2>
-        <div className="border rounded p-4 space-y-3">
+      <section className="section">
+        <h2 className="section-title">Targets</h2>
+        <div className="card space-y-3">
           <div className="grid gap-2 sm:grid-cols-2">
             <input
-              className="border rounded px-3 py-2"
+              className="w-full"
               placeholder="display_name"
               value={filters.display_name}
               onChange={(event) =>
@@ -385,7 +394,7 @@ export default function SurveyCreatePage() {
               }
             />
             <input
-              className="border rounded px-3 py-2"
+              className="w-full"
               placeholder="student_number"
               value={filters.student_number}
               onChange={(event) =>
@@ -393,7 +402,7 @@ export default function SurveyCreatePage() {
               }
             />
             <input
-              className="border rounded px-3 py-2"
+              className="w-full"
               placeholder="generation"
               value={filters.generation}
               onChange={(event) =>
@@ -401,15 +410,15 @@ export default function SurveyCreatePage() {
               }
             />
             <input
-              className="border rounded px-3 py-2"
+              className="w-full"
               placeholder="gender"
               value={filters.gender}
               onChange={(event) => updateFilter("gender", event.target.value)}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-list">
             <button
-              className="border rounded px-3 py-1"
+              className="btn btn-ghost"
               type="button"
               onClick={searchProfiles}
               disabled={searching}
@@ -417,7 +426,7 @@ export default function SurveyCreatePage() {
               {searching ? "Searching..." : "Search"}
             </button>
             <button
-              className="text-xs underline"
+              className="btn btn-ghost"
               type="button"
               onClick={toggleSelectAll}
               disabled={searchResults.length === 0}
@@ -425,7 +434,7 @@ export default function SurveyCreatePage() {
               Select all
             </button>
             <button
-              className="text-xs underline"
+              className="btn btn-ghost"
               type="button"
               onClick={addSelectedAccounts}
               disabled={searchSelected.length === 0}
@@ -446,7 +455,7 @@ export default function SurveyCreatePage() {
                       onChange={() => toggleSearchSelect(user.id)}
                     />
                     <span>{user.display_name ?? "-"}</span>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-[color:var(--muted)]">
                       {user.student_number ?? "-"}
                     </span>
                   </li>
@@ -456,7 +465,7 @@ export default function SurveyCreatePage() {
           </div>
         </div>
 
-        <div className="border rounded p-4 space-y-2">
+        <div className="card-soft space-y-2">
           <div className="text-sm font-semibold">
             Selected ({selectedAccounts.length})
           </div>
@@ -467,11 +476,11 @@ export default function SurveyCreatePage() {
               {selectedAccounts.map((user) => (
                 <li key={user.id} className="flex items-center gap-2">
                   <span>{user.display_name ?? "-"}</span>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-[color:var(--muted)]">
                     {user.student_number ?? "-"}
                   </span>
                   <button
-                    className="text-xs underline"
+                    className="btn btn-ghost"
                     type="button"
                     onClick={() => removeSelectedAccount(user.id)}
                   >
@@ -487,11 +496,11 @@ export default function SurveyCreatePage() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Questions</h2>
+      <section className="section">
+        <div className="inline-list">
+          <h2 className="section-title">Questions</h2>
           <button
-            className="border rounded px-3 py-1"
+            className="btn btn-ghost"
             type="button"
             onClick={addQuestion}
           >
@@ -502,11 +511,11 @@ export default function SurveyCreatePage() {
           <p className="text-sm text-red-600">{errors.questions}</p>
         ) : null}
         {questions.map((question, index) => (
-          <div key={index} className="border rounded p-4 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
+          <div key={index} className="card space-y-3">
+            <div className="inline-list">
               <span className="text-sm font-semibold">Q{index + 1}</span>
               <select
-                className="border rounded px-2 py-1"
+                className="w-32"
                 value={question.type}
                 onChange={(event) =>
                   updateQuestion(index, {
@@ -517,7 +526,7 @@ export default function SurveyCreatePage() {
                 <option value="single">single</option>
                 <option value="multiple">multiple</option>
               </select>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="inline-list text-sm">
                 <input
                   type="checkbox"
                   checked={question.allowOptionAdd}
@@ -530,7 +539,7 @@ export default function SurveyCreatePage() {
                 allow option add
               </label>
               <button
-                className="text-xs underline"
+                className="btn btn-ghost"
                 type="button"
                 onClick={() => removeQuestion(index)}
                 disabled={questions.length === 1}
@@ -539,7 +548,7 @@ export default function SurveyCreatePage() {
               </button>
             </div>
             <input
-              className="w-full border rounded px-3 py-2"
+              className="w-full"
               placeholder="Question prompt"
               value={question.prompt}
               onChange={(event) =>
@@ -550,7 +559,7 @@ export default function SurveyCreatePage() {
               {question.options.map((option, optionIndex) => (
                 <div key={optionIndex} className="flex items-center gap-2">
                   <input
-                    className="flex-1 border rounded px-3 py-2"
+                    className="flex-1"
                     placeholder={`Option ${optionIndex + 1}`}
                     value={option}
                     onChange={(event) =>
@@ -558,7 +567,7 @@ export default function SurveyCreatePage() {
                     }
                   />
                   <button
-                    className="text-xs underline"
+                    className="btn btn-ghost"
                     type="button"
                     onClick={() => removeOption(index, optionIndex)}
                   >
@@ -567,7 +576,7 @@ export default function SurveyCreatePage() {
                 </div>
               ))}
               <button
-                className="text-xs underline"
+                className="btn btn-ghost"
                 type="button"
                 onClick={() => addOption(index)}
               >
@@ -578,9 +587,9 @@ export default function SurveyCreatePage() {
         ))}
       </section>
 
-      <div className="flex items-center gap-3">
+      <div className="inline-list">
         <button
-          className="border rounded px-4 py-2"
+          className="btn btn-primary"
           type="button"
           onClick={submit}
           disabled={loading}

@@ -40,34 +40,22 @@ export default function AdminProfileCreatePage() {
   }, []);
 
   if (auth.status === "loading") {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   if (auth.status === "error") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile create</h1>
-        <p className="mt-4">error: {auth.message}</p>
+      <main className="page">
+        <p className="text-sm">error: {auth.message}</p>
       </main>
     );
   }
 
   if (auth.role !== "admin") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile create</h1>
-        <p className="mt-4">forbidden</p>
-        <Link className="mt-4 inline-block underline" href="/dashboard/profile">
+      <main className="page">
+        <p className="text-sm">forbidden</p>
+        <Link className="btn btn-ghost" href="/dashboard/profile">
           Back
         </Link>
       </main>
@@ -75,20 +63,11 @@ export default function AdminProfileCreatePage() {
   }
 
   return (
-    <main className="p-6 max-w-xl">
-      <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/">
-          Dashboard
-        </Link>
-      </div>
-      <h1 className="text-2xl font-bold">Profile create</h1>
-      <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
+    <main className="page max-w-xl">
       <AdminCreateUserForm />
-      <div className="mt-6">
-        <Link className="underline" href="/dashboard/profile">
-          Back
-        </Link>
-      </div>
+      <Link className="btn btn-ghost" href="/dashboard/profile">
+        Back
+      </Link>
     </main>
   );
 }

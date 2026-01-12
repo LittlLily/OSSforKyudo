@@ -9,11 +9,16 @@ export default async function LoginPage({
   const nextPath = typeof params?.next === "string" ? params.next : "/";
 
   return (
-    <main className="p-6 max-w-md">
-      <h1 className="text-2xl font-bold">Login</h1>
-      <h1 className="text-2xl font-bold">テスト</h1>
-      <h1 className="text-2xl font-bold">V0.0.0</h1>
-      <LoginForm nextPath={nextPath} />
+    <main className="page w-full max-w-2xl">
+      <div className="space-y-2">
+        <p className="section-title">Access</p>
+        <h1 className="page-title">Login</h1>
+        <p className="page-subtitle">Enterprise sign-in portal</p>
+      </div>
+      <div className="card">
+        <LoginForm nextPath={nextPath} />
+      </div>
+      <div className="text-xs text-[color:var(--muted)]">V0.0.0</div>
     </main>
   );
 }

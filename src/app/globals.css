@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4ead7;
+  --foreground: #824100;
+  --surface: #fffdf6;
+  --surface-strong: #fffdf6;
+  --border: #d9c2a5;
+  --muted: #9b6335;
+  --accent: #b4571a;
+  --accent-strong: #7a3600;
 }
 
 @theme inline {
@@ -12,17 +18,118 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply m-0 p-0;
+  }
+
+  body {
+    @apply font-sans antialiased text-[color:var(--foreground)];
+  }
+
+  main {
+    @apply rounded-3xl bg-[color:var(--surface-strong)] p-6;
+  }
+
+  a {
+    @apply text-[color:var(--accent)] underline-offset-4;
+  }
+
+  a:hover {
+    @apply text-[color:var(--accent-strong)];
+  }
+
+  button {
+    @apply rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)] shadow-[0_8px_20px_rgba(130,65,0,0.08)] transition hover:bg-[color:var(--surface-strong)];
+  }
+
+  input,
+  select,
+  textarea {
+    @apply rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--foreground)] shadow-[inset_0_1px_1px_rgba(130,65,0,0.08)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)];
+  }
+
+  table {
+    @apply w-full border-separate border-spacing-0;
+  }
+
+  th {
+    @apply border-b border-[color:var(--border)] bg-[color:var(--surface)] px-3 py-2 text-left text-sm font-semibold text-[color:var(--muted)];
+  }
+
+  td {
+    @apply border-b border-[color:var(--border)] px-3 py-2 text-sm;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .page {
+    @apply space-y-6;
+  }
+
+  .page-header {
+    @apply flex flex-wrap items-center justify-between gap-4;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold tracking-wide;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-[color:var(--muted)];
+  }
+
+  .page-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .section {
+    @apply space-y-3;
+  }
+
+  .section-title {
+    @apply text-xs font-semibold uppercase tracking-[0.26em] text-[color:var(--muted)];
+  }
+
+  .card {
+    @apply rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-4;
+  }
+
+  .card-soft {
+    @apply rounded-2xl bg-transparent p-0;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface-strong)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)];
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--foreground)] transition hover:bg-[color:var(--surface-strong)];
+  }
+
+  .btn-primary {
+    @apply border-[color:var(--accent)] bg-[color:var(--accent)] text-[color:var(--surface-strong)] shadow-[0_10px_24px_rgba(130,65,0,0.18)] hover:bg-[color:var(--accent-strong)];
+  }
+
+  .btn-ghost {
+    @apply border-[color:var(--border)] bg-transparent text-[color:var(--foreground)] hover:bg-[color:var(--surface)];
+  }
+
+  .field {
+    @apply grid gap-2;
+  }
+
+  .inline-list {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-2xl bg-[color:var(--surface-strong)];
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent), #fff 70%);
 }
 
 /* Hide the Next.js dev indicator (N logo) pinned to the bottom-left. */

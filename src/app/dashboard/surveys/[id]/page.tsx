@@ -221,42 +221,40 @@ export default function SurveyDetailPage() {
     return `${detail.results.respondedCount}/${detail.results.eligibleCount} (${detail.results.responseRate}%)`;
   }, [detail]);
 
-  if (loading) return <main className="p-6">loading...</main>;
+  if (loading) return <main className="page">loading...</main>;
   if (!detail) {
     return (
-      <main className="p-6">
+      <main className="page">
         <p>survey not found</p>
       </main>
     );
   }
 
   return (
-    <main className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Link className="underline" href="/dashboard/surveys">
+    <main className="page">
+      <h1 className="text-lg font-semibold">{detail.survey.title}</h1>
+      <div className="inline-list">
+        <Link className="btn btn-ghost" href="/dashboard/surveys">
           Back
         </Link>
-        <h1 className="text-2xl font-bold">{detail.survey.title}</h1>
-        <span className="text-xs border rounded px-2 py-0.5">
-          {statusLabel(detail)}
-        </span>
-        {detail.role === "admin" ? (
-          <div className="flex items-center gap-3">
+        <span className="chip">{statusLabel(detail)}</span>
+        {detail.role === "admin" && detail.survey.status === "draft" ? (
+          <>
             <Link
-              className="text-xs underline"
+              className="btn btn-ghost"
               href={`/dashboard/surveys/${detail.survey.id}/edit`}
             >
               Edit
             </Link>
             <button
-              className="text-xs underline text-red-600"
+              className="btn btn-ghost text-[color:var(--accent-strong)]"
               type="button"
               onClick={deleteSurvey}
               disabled={deleting}
             >
               {deleting ? "Deleting..." : "Delete"}
             </button>
-          </div>
+          </>
         ) : null}
       </div>
 
@@ -264,7 +262,7 @@ export default function SurveyDetailPage() {
         <p className="text-sm">{detail.survey.description}</p>
       ) : null}
 
-      <div className="text-xs text-gray-600">
+      <div className="text-xs text-[color:var(--muted)]">
         <span>open: {formatDate(detail.survey.opens_at)}</span>
         <span className="ml-3">close: {formatDate(detail.survey.closes_at)}</span>
       </div>
@@ -274,11 +272,11 @@ export default function SurveyDetailPage() {
       {!detail.eligible ? (
         <p className="text-sm">回答権がありません</p>
       ) : detail.canAnswer ? (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">回答</h2>
+        <section className="section">
+          <h2 className="section-title">Response</h2>
           {detail.questions.map((question, index) => (
-            <div key={question.id} className="border rounded p-4 space-y-2">
-              <div className="font-semibold">
+            <div key={question.id} className="card space-y-2">
+              <div className="font-semibold text-sm">
                 Q{index + 1}. {question.prompt}
               </div>
               <div className="space-y-1">
@@ -287,7 +285,10 @@ export default function SurveyDetailPage() {
                   const checked = selected.includes(option.id);
                   if (question.type === "single") {
                     return (
-                      <label key={option.id} className="flex items-center gap-2 text-sm">
+                      <label
+                        key={option.id}
+                        className="flex items-center gap-2 text-sm"
+                      >
                         <input
                           type="radio"
                           name={question.id}
@@ -299,7 +300,10 @@ export default function SurveyDetailPage() {
                     );
                   }
                   return (
-                    <label key={option.id} className="flex items-center gap-2 text-sm">
+                    <label
+                      key={option.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
                       <input
                         type="checkbox"
                         checked={checked}
@@ -313,9 +317,9 @@ export default function SurveyDetailPage() {
                 })}
               </div>
               {question.allow_option_add ? (
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-list">
                   <input
-                    className="border rounded px-3 py-1 text-sm"
+                    className="w-64"
                     placeholder="Add option"
                     value={optionDrafts[question.id] ?? ""}
                     onChange={(event) =>
@@ -326,7 +330,7 @@ export default function SurveyDetailPage() {
                     }
                   />
                   <button
-                    className="text-xs underline"
+                    className="btn btn-ghost"
                     type="button"
                     onClick={() => addOption(question.id)}
                     disabled={saving}
@@ -338,7 +342,7 @@ export default function SurveyDetailPage() {
             </div>
           ))}
           <button
-            className="border rounded px-4 py-2"
+            className="btn btn-primary"
             type="button"
             onClick={submit}
             disabled={saving}
@@ -352,15 +356,15 @@ export default function SurveyDetailPage() {
         </p>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">結果</h2>
+      <section className="section">
+        <h2 className="section-title">Results</h2>
         <p className="text-sm">回答率: {responseSummary}</p>
         {!detail.survey.is_anonymous ? (
           <h3 className="font-semibold">選択肢ごとの回答者</h3>
         ) : null}
         {detail.questions.map((question, index) => (
-          <div key={question.id} className="border rounded p-4 space-y-2">
-            <div className="font-semibold">
+          <div key={question.id} className="card space-y-2">
+            <div className="font-semibold text-sm">
               Q{index + 1}. {question.prompt}
             </div>
             <div className="space-y-1 text-sm">
@@ -382,7 +386,9 @@ export default function SurveyDetailPage() {
                     <div key={option.id}>
                       <div className="font-semibold">{option.label}</div>
                       {respondents.length === 0 ? (
-                        <p className="text-xs text-gray-600">no respondents</p>
+                        <p className="text-xs text-[color:var(--muted)]">
+                          no respondents
+                        </p>
                       ) : (
                         <ul className="list-disc pl-4 space-y-1">
                           {respondents.map((user) => (
@@ -400,8 +406,8 @@ export default function SurveyDetailPage() {
             ) : null}
           </div>
         ))}
-        <div className="space-y-2">
-          <h3 className="font-semibold">未回答者</h3>
+        <div className="card-soft space-y-2">
+          <h3 className="font-semibold text-sm">未回答者</h3>
           {detail.results.unresponded.length === 0 ? (
             <p className="text-sm">no unresponded accounts</p>
           ) : (

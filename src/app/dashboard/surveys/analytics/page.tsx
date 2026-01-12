@@ -78,36 +78,39 @@ export default function SurveyAnalyticsPage() {
   }, [rows]);
 
   return (
-    <main className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Link className="underline" href="/dashboard/surveys">
+    <main className="page">
+      <div className="inline-list">
+        <Link className="btn btn-ghost" href="/dashboard/surveys">
           Back
         </Link>
-        <h1 className="text-2xl font-bold">Survey Analytics</h1>
       </div>
 
-      <section className="space-y-3">
+      <section className="section">
         <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-sm font-semibold">Start</label>
+          <div className="field">
+            <label className="text-sm font-semibold text-[color:var(--muted)]">
+              Start
+            </label>
             <input
-              className="mt-1 border rounded px-3 py-2"
+              className="w-52"
               type="datetime-local"
               value={startAt}
               onChange={(event) => setStartAt(event.target.value)}
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold">End</label>
+          <div className="field">
+            <label className="text-sm font-semibold text-[color:var(--muted)]">
+              End
+            </label>
             <input
-              className="mt-1 border rounded px-3 py-2"
+              className="w-52"
               type="datetime-local"
               value={endAt}
               onChange={(event) => setEndAt(event.target.value)}
             />
           </div>
           <button
-            className="border rounded px-4 py-2"
+            className="btn btn-primary"
             type="button"
             onClick={load}
             disabled={loading}
@@ -118,30 +121,32 @@ export default function SurveyAnalyticsPage() {
         {message ? <p className="text-sm">error: {message}</p> : null}
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-lg font-semibold">回答率一覧</h2>
+      <section className="section">
+        <h2 className="section-title">回答率一覧</h2>
         {sortedRows.length === 0 ? (
           <p className="text-sm">no data</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[640px] text-sm border">
+          <div className="table-wrap">
+            <table className="min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Name</th>
-                  <th className="text-left p-2">Student No</th>
-                  <th className="text-right p-2">Eligible</th>
-                  <th className="text-right p-2">Responded</th>
-                  <th className="text-right p-2">Rate</th>
+                <tr>
+                  <th className="text-left">Name</th>
+                  <th className="text-left">Student No</th>
+                  <th className="text-right">Eligible</th>
+                  <th className="text-right">Responded</th>
+                  <th className="text-right">Rate</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedRows.map((row) => (
-                  <tr key={row.account_id} className="border-b">
-                    <td className="p-2">{row.display_name ?? "-"}</td>
-                    <td className="p-2">{row.student_number ?? "-"}</td>
-                    <td className="p-2 text-right">{row.eligible}</td>
-                    <td className="p-2 text-right">{row.responded}</td>
-                    <td className="p-2 text-right">{formatRate(row.responseRate)}</td>
+                  <tr key={row.account_id}>
+                    <td>{row.display_name ?? "-"}</td>
+                    <td>{row.student_number ?? "-"}</td>
+                    <td className="text-right">{row.eligible}</td>
+                    <td className="text-right">{row.responded}</td>
+                    <td className="text-right">
+                      {formatRate(row.responseRate)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

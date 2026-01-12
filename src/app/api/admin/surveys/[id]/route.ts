@@ -185,6 +185,22 @@ export async function POST(
   }
 
   try {
+    const currentSurvey = await adminClient
+      .from("surveys")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle();
+    if (currentSurvey.error) throw currentSurvey.error;
+    if (!currentSurvey.data) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    if (currentSurvey.data.status !== "draft") {
+      return NextResponse.json(
+        { error: "only draft can be edited" },
+        { status: 400 }
+      );
+    }
+
     const body = (await request.json()) as {
       title?: string;
       description?: string;

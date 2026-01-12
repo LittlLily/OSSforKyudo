@@ -39,49 +39,36 @@ export default function AdminProfilePage() {
   }, []);
 
   if (auth.status === "loading") {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   if (auth.status === "error") {
     return (
-      <main className="p-6">
-        <div className="mb-4">
-          <Link className="inline-block border rounded px-3 py-1" href="/">
-            Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">Profile</h1>
-        <p className="mt-4">error: {auth.message}</p>
+      <main className="page">
+        <p className="text-sm">error: {auth.message}</p>
       </main>
     );
   }
 
   return (
-    <main className="p-6">
-      <div className="mb-4">
-        <Link className="inline-block border rounded px-3 py-1" href="/">
-          Dashboard
-        </Link>
-      </div>
-      <h1 className="text-2xl font-bold">Profile</h1>
-      <p className="mt-2 text-sm">Signed in as: {auth.email}</p>
-      <div className="mt-6 flex flex-wrap gap-3">
+    <main className="page">
+      <div className="flex w-full flex-col gap-3">
         {auth.role === "admin" ? (
           <>
             <Link
-              className="inline-block border rounded px-4 py-2"
+              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
               href="/dashboard/profile/profile-edit"
             >
               Profile edit
             </Link>
             <Link
-              className="inline-block border rounded px-4 py-2"
+              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
               href="/dashboard/profile/profile-create"
             >
               Profile create
             </Link>
             <Link
-              className="inline-block border rounded px-4 py-2"
+              className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
               href="/dashboard/profile/profile-delete"
             >
               Profile delete
@@ -89,7 +76,7 @@ export default function AdminProfilePage() {
           </>
         ) : null}
         <Link
-          className="inline-block border rounded px-4 py-2"
+          className="btn btn-ghost w-full justify-start text-sm tracking-normal normal-case"
           href="/dashboard/profile/profile-list"
         >
           Profile list

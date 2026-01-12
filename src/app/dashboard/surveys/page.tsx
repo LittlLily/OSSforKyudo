@@ -88,57 +88,47 @@ export default function SurveysPage() {
   }, [surveys]);
 
   if (loading) {
-    return <main className="p-6">loading...</main>;
+    return <main className="page">loading...</main>;
   }
 
   return (
-    <main className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link className="border rounded px-3 py-1" href="/">
-            Dashboard
+    <main className="page">
+      <div className="inline-list">
+        <Link className="btn btn-ghost" href="/dashboard/surveys/analytics">
+          Analytics
+        </Link>
+        {role === "admin" ? (
+          <Link className="btn btn-primary" href="/dashboard/surveys/create">
+            Create survey
           </Link>
-          <h1 className="text-2xl font-bold">Surveys</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link className="border rounded px-3 py-1" href="/dashboard/surveys/analytics">
-            Analytics
-          </Link>
-          {role === "admin" ? (
-            <Link className="border rounded px-3 py-1" href="/dashboard/surveys/create">
-              Create survey
-            </Link>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       {message ? <p className="text-sm">error: {message}</p> : null}
 
-      <section>
-        <h2 className="text-lg font-semibold">未回答</h2>
+      <section className="section">
+        <h2 className="section-title">Pending Responses</h2>
         {pendingSurveys.length === 0 ? (
-          <p className="mt-2 text-sm">no pending surveys</p>
+          <p className="text-sm">no pending surveys</p>
         ) : (
-          <div className="mt-3 space-y-3">
+          <div className="space-y-3">
             {pendingSurveys.map((survey) => (
-              <div key={survey.id} className="border rounded p-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link className="underline" href={`/dashboard/surveys/${survey.id}`}>
+              <div key={survey.id} className="card">
+                <div className="inline-list">
+                  <Link href={`/dashboard/surveys/${survey.id}`}>
                     {survey.title}
                   </Link>
-                  <span className="text-xs border rounded px-2 py-0.5">
-                    {statusLabel(survey)}
-                  </span>
-                  <span className="text-xs border rounded px-2 py-0.5">
-                    {responseLabel(survey)}
-                  </span>
+                  <span className="chip">{statusLabel(survey)}</span>
+                  <span className="chip">{responseLabel(survey)}</span>
                 </div>
                 {survey.description ? (
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
-                <div className="mt-2 text-xs text-gray-600">
+                <div className="mt-3 text-xs text-[color:var(--muted)]">
                   <span>open: {formatDate(survey.opens_at)}</span>
-                  <span className="ml-3">close: {formatDate(survey.closes_at)}</span>
+                  <span className="ml-3">
+                    close: {formatDate(survey.closes_at)}
+                  </span>
                 </div>
               </div>
             ))}
@@ -146,31 +136,29 @@ export default function SurveysPage() {
         )}
       </section>
 
-      <section>
-        <h2 className="text-lg font-semibold">回答済み</h2>
+      <section className="section">
+        <h2 className="section-title">Completed</h2>
         {completedSurveys.length === 0 ? (
-          <p className="mt-2 text-sm">no completed surveys</p>
+          <p className="text-sm">no completed surveys</p>
         ) : (
-          <div className="mt-3 space-y-3">
+          <div className="space-y-3">
             {completedSurveys.map((survey) => (
-              <div key={survey.id} className="border rounded p-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link className="underline" href={`/dashboard/surveys/${survey.id}`}>
+              <div key={survey.id} className="card">
+                <div className="inline-list">
+                  <Link href={`/dashboard/surveys/${survey.id}`}>
                     {survey.title}
                   </Link>
-                  <span className="text-xs border rounded px-2 py-0.5">
-                    {statusLabel(survey)}
-                  </span>
-                  <span className="text-xs border rounded px-2 py-0.5">
-                    {responseLabel(survey)}
-                  </span>
+                  <span className="chip">{statusLabel(survey)}</span>
+                  <span className="chip">{responseLabel(survey)}</span>
                 </div>
                 {survey.description ? (
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
-                <div className="mt-2 text-xs text-gray-600">
+                <div className="mt-3 text-xs text-[color:var(--muted)]">
                   <span>open: {formatDate(survey.opens_at)}</span>
-                  <span className="ml-3">close: {formatDate(survey.closes_at)}</span>
+                  <span className="ml-3">
+                    close: {formatDate(survey.closes_at)}
+                  </span>
                 </div>
               </div>
             ))}
