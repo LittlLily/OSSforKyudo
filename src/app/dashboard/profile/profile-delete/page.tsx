@@ -122,7 +122,7 @@ export default function AdminProfileDeletePage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: { id?: string; email?: string | null; role?: "admin" | "user" };
           error?: string;
         };
         if (!res.ok) throw new Error(data.error || "failed to load user");

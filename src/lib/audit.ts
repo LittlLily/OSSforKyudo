@@ -15,13 +15,9 @@ type InvoiceLogInsert = {
   detail?: string | null;
 };
 
-type AdminClient = {
-  from: (table: string) => {
-    insert: (
-      values: Record<string, unknown> | Record<string, unknown>[]
-    ) => Promise<{ error?: { message?: string } | null }>;
-  };
-};
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+type AdminClient = SupabaseClient;
 
 export async function logAccountAction(
   adminClient: AdminClient,
