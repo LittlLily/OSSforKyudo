@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   HiOutlineArrowRightCircle,
+  HiOutlineArrowLeft,
   HiOutlineClipboardDocumentList,
   HiOutlineChartBar,
   HiOutlineDocumentText,
@@ -25,89 +27,115 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const isLogin = pathname?.startsWith("/login");
   const currentLabel = (() => {
     const path = pathname ?? "/";
-    if (path === "/") return "Dashboard";
+    if (path === "/") return "ダッシュボード";
     if (path.startsWith("/dashboard/profile/profile-edit"))
-      return "Profile Edit";
+      return "プロフィール編集";
     if (path.startsWith("/dashboard/profile/profile-create"))
-      return "Profile Create";
+      return "プロフィール作成";
     if (path.startsWith("/dashboard/profile/profile-delete"))
-      return "Profile Delete";
+      return "プロフィール削除";
     if (path.startsWith("/dashboard/profile/profile-list"))
-      return "Profile List";
-    if (path.startsWith("/dashboard/profile")) return "Profiles";
-    if (path.startsWith("/dashboard/bows/bow-list")) return "Bow List";
-    if (path.startsWith("/dashboard/bows/bow-create")) return "Bow Create";
-    if (path.startsWith("/dashboard/bows/bow-edit")) return "Bow Edit";
-    if (path.startsWith("/dashboard/bows/bow-delete")) return "Bow Delete";
-    if (path.startsWith("/dashboard/bows/bow-loan")) return "Bow Loan";
-    if (path.startsWith("/dashboard/bows")) return "Japanese Bows";
-    if (path.startsWith("/dashboard/invoices/create")) return "Invoice Create";
-    if (path.startsWith("/dashboard/invoices")) return "Invoices";
-    if (path.startsWith("/dashboard/logs/account")) return "Account Logs";
-    if (path.startsWith("/dashboard/logs/invoices")) return "Invoice Logs";
-    if (path.startsWith("/dashboard/logs/bows")) return "Bow Logs";
-    if (path.startsWith("/dashboard/logs")) return "Logs";
+      return "プロフィール一覧";
+    if (path.startsWith("/dashboard/profile")) return "プロフィール";
+    if (path.startsWith("/dashboard/bows/bow-list")) return "弓一覧";
+    if (path.startsWith("/dashboard/bows/bow-create")) return "弓作成";
+    if (path.startsWith("/dashboard/bows/bow-edit")) return "弓編集";
+    if (path.startsWith("/dashboard/bows/bow-delete")) return "弓削除";
+    if (path.startsWith("/dashboard/bows/bow-loan")) return "弓貸出";
+    if (path.startsWith("/dashboard/bows")) return "弓管理";
+    if (path.startsWith("/dashboard/invoices/create")) return "請求書作成";
+    if (path.startsWith("/dashboard/invoices")) return "請求書";
+    if (path.startsWith("/dashboard/logs/account")) return "アカウントログ";
+    if (path.startsWith("/dashboard/logs/invoices")) return "請求書ログ";
+    if (path.startsWith("/dashboard/logs/bows")) return "弓ログ";
+    if (path.startsWith("/dashboard/logs")) return "ログ";
     if (path.startsWith("/dashboard/surveys/analytics"))
-      return "Survey Analytics";
-    if (path.startsWith("/dashboard/surveys/create")) return "Survey Create";
+      return "アンケート集計";
+    if (path.startsWith("/dashboard/surveys/create")) return "アンケート作成";
     if (path.startsWith("/dashboard/surveys/") && path.endsWith("/edit"))
-      return "Survey Edit";
-    if (path.startsWith("/dashboard/surveys/")) return "Survey Detail";
-    if (path.startsWith("/dashboard/surveys")) return "Surveys";
-    return "Dashboard";
+      return "アンケート編集";
+    if (path.startsWith("/dashboard/surveys/")) return "アンケート詳細";
+    if (path.startsWith("/dashboard/surveys")) return "アンケート";
+    return "ダッシュボード";
   })();
   const currentIcon = useMemo(() => {
     switch (currentLabel) {
-      case "Dashboard":
+      case "ダッシュボード":
         return <HiOutlineHome />;
-      case "Profiles":
+      case "プロフィール":
         return <HiOutlineUserGroup />;
-      case "Profile Edit":
+      case "プロフィール編集":
         return <HiOutlineUserCircle />;
-      case "Profile Create":
+      case "プロフィール作成":
         return <HiOutlinePlusCircle />;
-      case "Profile Delete":
+      case "プロフィール削除":
         return <HiOutlineTrash />;
-      case "Profile List":
+      case "プロフィール一覧":
         return <HiOutlineClipboardDocumentList />;
-      case "Japanese Bows":
+      case "弓管理":
         return <TbBow />;
-      case "Bow List":
+      case "弓一覧":
         return <HiOutlineClipboardDocumentList />;
-      case "Bow Create":
+      case "弓作成":
         return <HiOutlinePlusCircle />;
-      case "Bow Edit":
+      case "弓編集":
         return <HiOutlinePencilSquare />;
-      case "Bow Delete":
+      case "弓削除":
         return <HiOutlineTrash />;
-      case "Bow Loan":
+      case "弓貸出":
         return <HiOutlineArrowRightCircle />;
-      case "Invoices":
+      case "請求書":
         return <HiOutlineReceiptRefund />;
-      case "Invoice Create":
+      case "請求書作成":
         return <HiOutlinePlusCircle />;
-      case "Logs":
+      case "ログ":
         return <HiOutlineDocumentText />;
-      case "Account Logs":
+      case "アカウントログ":
         return <HiOutlineUserCircle />;
-      case "Invoice Logs":
+      case "請求書ログ":
         return <HiOutlineReceiptRefund />;
-      case "Bow Logs":
+      case "弓ログ":
         return <TbBow />;
-      case "Surveys":
+      case "アンケート":
         return <HiOutlineClipboardDocumentList />;
-      case "Survey Create":
+      case "アンケート作成":
         return <HiOutlinePlusCircle />;
-      case "Survey Edit":
+      case "アンケート編集":
         return <HiOutlinePencilSquare />;
-      case "Survey Detail":
+      case "アンケート詳細":
         return <HiOutlineDocumentText />;
-      case "Survey Analytics":
+      case "アンケート集計":
         return <HiOutlineChartBar />;
       default:
         return <HiOutlineHome />;
     }
   }, [currentLabel]);
+  const backLink = useMemo(() => {
+    const path = pathname ?? "/";
+    if (path.startsWith("/dashboard/profile/") && path !== "/dashboard/profile")
+      return { href: "/dashboard/profile", label: "戻る" };
+    if (path.startsWith("/dashboard/bows/") && path !== "/dashboard/bows")
+      return { href: "/dashboard/bows", label: "戻る" };
+    if (path.startsWith("/dashboard/logs/") && path !== "/dashboard/logs")
+      return { href: "/dashboard/logs", label: "戻る" };
+    if (path.startsWith("/dashboard/surveys/")) {
+      if (path === "/dashboard/surveys") return null;
+      if (
+        path.startsWith("/dashboard/surveys/analytics") ||
+        path.startsWith("/dashboard/surveys/create")
+      ) {
+        return { href: "/dashboard/surveys", label: "戻る" };
+      }
+      const parts = path.split("/").filter(Boolean);
+      const surveyId = parts[2];
+      if (!surveyId) return null;
+      if (parts[3] === "edit") {
+        return { href: `/dashboard/surveys/${surveyId}`, label: "戻る" };
+      }
+      return { href: "/dashboard/surveys", label: "戻る" };
+    }
+    return null;
+  }, [pathname]);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -128,9 +156,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <button
         aria-hidden={!isMobileNavOpen}
         className={`fixed inset-0 z-10 bg-black/30 transition min-[769px]:hidden ${
-          isMobileNavOpen
-            ? "opacity-100"
-            : "pointer-events-none opacity-0"
+          isMobileNavOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setIsMobileNavOpen(false)}
         tabIndex={isMobileNavOpen ? 0 : -1}
@@ -150,7 +176,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               せいしゃ
             </h1>
             <p className="mt-2 text-sm text-[color:var(--muted)]">
-              kyudo System
+              弓道システム
             </p>
           </div>
           <button
@@ -158,7 +184,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMobileNavOpen(false)}
             type="button"
           >
-            Close
+            閉じる
           </button>
         </div>
         <SidebarNav />
@@ -167,7 +193,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="min-h-screen">
-        <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-[color:var(--border)] bg-[color:var(--surface-strong)] px-7 py-5 backdrop-blur max-[768px]:static max-[768px]:px-4 max-[768px]:py-4">
+        <header className="sticky top-0 z-10 flex flex-wrap items-center justify-start gap-4 border-b border-[color:var(--border)] bg-[color:var(--surface-strong)] px-7 py-5 backdrop-blur max-[768px]:static max-[768px]:px-4 max-[768px]:py-4">
           <div className="flex items-center gap-3">
             <button
               aria-controls="mobile-sidebar"
@@ -176,14 +202,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               onClick={() => setIsMobileNavOpen((open) => !open)}
               type="button"
             >
-              Menu
+              メニュー
             </button>
             <div className="min-[769px]:hidden">
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-[color:var(--muted)] font-hiragino">
                 せいしゃ
               </p>
               <p className="text-xs font-semibold tracking-[0.16em]">
-                kyudo System
+                弓道システム
               </p>
             </div>
           </div>
@@ -191,6 +217,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <span className="text-xl">{currentIcon}</span>
             {currentLabel}
           </h2>
+          {backLink ? (
+            <Link
+              className="btn btn-ghost inline-flex items-center gap-2 ml-auto"
+              href={backLink.href}
+            >
+              <HiOutlineArrowLeft className="text-base" />
+              {backLink.label}
+            </Link>
+          ) : null}
         </header>
         <div className="flex justify-center px-7 py-6 max-[768px]:px-4">
           {children}

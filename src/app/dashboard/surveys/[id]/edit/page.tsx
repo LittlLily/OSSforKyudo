@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineCheckCircle,
   HiOutlineMagnifyingGlass,
   HiOutlineMinusCircle,
@@ -398,16 +396,6 @@ export default function SurveyEditPage() {
 
   return (
     <main className="page">
-      <div className="inline-list">
-        <Link
-          className="btn btn-ghost inline-flex items-center gap-2"
-          href={`/dashboard/surveys/${params.id}`}
-        >
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
-      </div>
-
       {message ? <p className="text-sm">エラー: {message}</p> : null}
 
       <section className="section">

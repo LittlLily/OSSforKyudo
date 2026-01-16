@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineClipboardDocumentList,
 } from "react-icons/hi2";
 import { TbBow } from "react-icons/tb";
@@ -133,15 +131,6 @@ export default function BowLogsPage() {
             弓ログ
           </h1>
           <p className="page-subtitle">弓の操作履歴</p>
-        </div>
-        <div className="page-actions">
-          <Link
-            className="btn btn-ghost inline-flex items-center gap-2"
-            href="/dashboard/logs"
-          >
-            <HiOutlineArrowLeft className="text-base" />
-            戻る
-          </Link>
         </div>
       </div>
 

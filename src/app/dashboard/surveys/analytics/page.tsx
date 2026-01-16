@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineArrowDownTray,
   HiOutlineChartBarSquare,
 } from "react-icons/hi2";
@@ -85,13 +83,6 @@ export default function SurveyAnalyticsPage() {
 
   return (
     <main className="page">
-      <div className="inline-list">
-        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
-      </div>
-
       <section className="section">
         <div className="flex flex-wrap items-end gap-3">
           <div className="field">

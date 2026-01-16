@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineArrowPath,
   HiOutlineMagnifyingGlass,
   HiOutlineTrash,
@@ -178,13 +176,6 @@ export default function BowDeletePage() {
     return (
       <main className="page">
         <p className="text-sm">権限がありません</p>
-        <Link
-          className="btn btn-ghost inline-flex items-center gap-2"
-          href="/dashboard/bows"
-        >
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
       </main>
     );
   }
@@ -347,13 +338,6 @@ export default function BowDeletePage() {
       ) : (
         <p className="text-sm">準備完了</p>
       )}
-      <Link
-        className="btn btn-ghost inline-flex items-center gap-2"
-        href="/dashboard/bows"
-      >
-        <HiOutlineArrowLeft className="text-base" />
-        戻る
-      </Link>
     </main>
   );
 }

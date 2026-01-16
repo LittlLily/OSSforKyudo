@@ -21,37 +21,37 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    label: "Dashboard",
+    label: "ダッシュボード",
     href: "/",
     match: (path) => path === "/",
     icon: <HiOutlineHome />,
   },
   {
-    label: "Surveys",
+    label: "アンケート",
     href: "/dashboard/surveys",
     match: (path) => path.startsWith("/dashboard/surveys"),
     icon: <HiOutlineClipboardDocumentList />,
   },
   {
-    label: "Japanese Bows",
+    label: "弓管理",
     href: "/dashboard/bows",
     match: (path) => path.startsWith("/dashboard/bows"),
     icon: <TbBow />,
   },
   {
-    label: "Profiles",
+    label: "プロフィール",
     href: "/dashboard/profile",
     match: (path) => path.startsWith("/dashboard/profile"),
     icon: <HiOutlineUserGroup />,
   },
   {
-    label: "Invoices",
+    label: "請求書",
     href: "/dashboard/invoices",
     match: (path) => path.startsWith("/dashboard/invoices"),
     icon: <HiOutlineReceiptRefund />,
   },
   {
-    label: "Logs",
+    label: "ログ",
     href: "/dashboard/logs",
     match: (path) => path.startsWith("/dashboard/logs"),
     icon: <HiOutlineDocumentText />,

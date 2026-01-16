@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineArrowPath,
   HiOutlineMagnifyingGlass,
 } from "react-icons/hi2";
@@ -287,13 +285,6 @@ export default function BowListPage() {
       ) : (
         <p className="text-sm text-[color:var(--muted)]">準備完了</p>
       )}
-      <Link
-        className="btn btn-ghost inline-flex items-center gap-2"
-        href="/dashboard/bows"
-      >
-        <HiOutlineArrowLeft className="text-base" />
-        戻る
-      </Link>
     </main>
   );
 }

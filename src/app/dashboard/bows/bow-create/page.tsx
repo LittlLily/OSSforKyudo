@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HiOutlineArrowLeft } from "react-icons/hi2";
 
 const lengthOptions = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 
@@ -112,13 +110,6 @@ export default function BowCreatePage() {
     return (
       <main className="page">
         <p className="text-sm">権限がありません</p>
-        <Link
-          className="btn btn-ghost inline-flex items-center gap-2"
-          href="/dashboard/bows"
-        >
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
       </main>
     );
   }
@@ -203,13 +194,6 @@ export default function BowCreatePage() {
           {message ? <p className="text-sm">{message}</p> : null}
         </div>
       </div>
-      <Link
-        className="btn btn-ghost inline-flex items-center gap-2"
-        href="/dashboard/bows"
-      >
-        <HiOutlineArrowLeft className="text-base" />
-        戻る
-      </Link>
     </main>
   );
 }

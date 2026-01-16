@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineChartBar,
   HiOutlineChatBubbleBottomCenterText,
   HiOutlineCheckCircle,
@@ -250,10 +249,6 @@ export default function SurveyDetailPage() {
         {detail.survey.title}
       </h1>
       <div className="inline-list">
-        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/surveys">
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
         <span className="chip">{statusLabel(detail)}</span>
         {detail.role === "admin" && detail.survey.status === "draft" ? (
           <>

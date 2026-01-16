@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HiOutlineArrowLeft } from "react-icons/hi2";
 import AdminCreateUserForm from "../../AdminCreateUserForm";
 
 type AuthState =
@@ -56,10 +54,6 @@ export default function AdminProfileCreatePage() {
     return (
       <main className="page">
         <p className="text-sm">権限がありません</p>
-        <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
-          <HiOutlineArrowLeft className="text-base" />
-          戻る
-        </Link>
       </main>
     );
   }
@@ -67,10 +61,6 @@ export default function AdminProfileCreatePage() {
   return (
     <main className="page">
       <AdminCreateUserForm />
-      <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/profile">
-        <HiOutlineArrowLeft className="text-base" />
-        戻る
-      </Link>
     </main>
   );
 }

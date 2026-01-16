@@ -192,10 +192,6 @@ export default function Home() {
     <main className="page">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-sm text-[color:var(--muted)]">
-            <HiOutlineHome className="text-base" />
-            ダッシュボード
-          </div>
           <p className="text-lg font-semibold">
             {state.displayName ? `${state.displayName}さん` : state.email}
           </p>

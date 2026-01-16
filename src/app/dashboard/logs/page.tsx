@@ -59,10 +59,6 @@ export default function LogsPage() {
     <main className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title flex items-center gap-3">
-            <HiOutlineDocumentText className="text-2xl" />
-            ログ
-          </h1>
           <p className="page-subtitle">
             監視用のアカウントログと会計ログを確認できます。
           </p>

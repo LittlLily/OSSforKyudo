@@ -29,7 +29,7 @@ export default function SidebarFooter() {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          setState({ status: "error", message: "not signed in" });
+          setState({ status: "error", message: "サインインしていません" });
           return;
         }
         const data = (await res.json()) as {
@@ -40,7 +40,8 @@ export default function SidebarFooter() {
           };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setState({
           status: "authed",
           email: data.user?.email ?? "",
@@ -51,14 +52,16 @@ export default function SidebarFooter() {
       } catch (err) {
         setState({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (state.status === "loading") {
-    return <div className="text-xs text-[color:var(--muted)]">loading...</div>;
+    return (
+      <div className="text-xs text-[color:var(--muted)]">読み込み中...</div>
+    );
   }
 
   if (state.status === "error") {
@@ -79,14 +82,10 @@ export default function SidebarFooter() {
         <HiOutlineIdentification className="text-base" />
         学籍番号: {state.studentNumber ?? "-"}
       </p>
-      <p className="flex items-center gap-2">
-        <HiOutlineShieldCheck className="text-base" />
-        権限: {state.role}
-      </p>
       <form action={signOut}>
         <button className="btn btn-ghost inline-flex items-center gap-2" type="submit">
           <HiOutlineArrowRightOnRectangle className="text-base" />
-          Sign out
+          サインアウト
         </button>
       </form>
       <p className="flex items-center gap-2 text-xs text-[color:var(--muted)]">

@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineClipboardDocumentList,
   HiOutlineUserCircle,
 } from "react-icons/hi2";
@@ -143,12 +141,6 @@ export default function AccountLogsPage() {
               ? "全ユーザーのアカウント操作ログ"
               : "自分のアカウント操作ログ"}
           </p>
-        </div>
-        <div className="page-actions">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/logs">
-            <HiOutlineArrowLeft className="text-base" />
-            戻る
-          </Link>
         </div>
       </div>
 

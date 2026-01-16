@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  HiOutlineArrowLeft,
   HiOutlineClipboardDocumentList,
   HiOutlineReceiptRefund,
 } from "react-icons/hi2";
@@ -144,12 +142,6 @@ export default function InvoiceLogsPage() {
               ? "全請求の会計ログ"
               : "自分に紐づく請求の会計ログ"}
           </p>
-        </div>
-        <div className="page-actions">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/logs">
-            <HiOutlineArrowLeft className="text-base" />
-            戻る
-          </Link>
         </div>
       </div>
 
