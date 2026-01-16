@@ -67,6 +67,11 @@ type SurveyDetail = {
 
 type DetailResponse = SurveyDetail & { error?: string };
 
+type AuthState =
+  | { status: "loading" }
+  | { status: "authed" }
+  | { status: "error"; message: string };
+
 const formatDate = (value: string | null) => {
   if (!value) return "-";
   return new Date(value).toLocaleString("ja-JP", {
@@ -84,6 +89,7 @@ const statusLabel = (detail: SurveyDetail) => {
 
 export default function SurveyDetailPage() {
   const params = useParams<{ id: string }>();
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [detail, setDetail] = useState<SurveyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -91,6 +97,27 @@ export default function SurveyDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [optionDrafts, setOptionDrafts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = `/login?next=/dashboard/surveys/${params.id}`;
+          return;
+        }
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
+        setAuth({ status: "authed" });
+      } catch (err) {
+        setAuth({
+          status: "error",
+          message: err instanceof Error ? err.message : "不明なエラー",
+        });
+      }
+    })();
+  }, [params.id]);
 
   const loadDetail = async () => {
     setLoading(true);
@@ -116,10 +143,10 @@ export default function SurveyDetailPage() {
   };
 
   useEffect(() => {
-    if (params?.id) {
+    if (params?.id && auth.status === "authed") {
       void loadDetail();
     }
-  }, [params?.id]);
+  }, [params?.id, auth.status]);
 
   const updateAnswer = (questionId: string, optionId: string, checked: boolean) => {
     setAnswers((prev) => {
@@ -233,6 +260,16 @@ export default function SurveyDetailPage() {
     return `${detail.results.respondedCount}/${detail.results.eligibleCount} (${detail.results.responseRate}%)`;
   }, [detail]);
 
+  if (auth.status === "loading") {
+    return <main className="page">読み込み中...</main>;
+  }
+  if (auth.status === "error") {
+    return (
+      <main className="page">
+        <p>エラー: {auth.message}</p>
+      </main>
+    );
+  }
   if (loading) return <main className="page">読み込み中...</main>;
   if (!detail) {
     return (

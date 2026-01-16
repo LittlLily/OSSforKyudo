@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiOutlineArrowDownTray,
   HiOutlineChartBarSquare,
@@ -20,6 +20,11 @@ type AnalyticsResponse = {
   error?: string;
 };
 
+type AuthState =
+  | { status: "loading" }
+  | { status: "authed" }
+  | { status: "error"; message: string };
+
 const toLocalInputValue = (date: Date) => {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
@@ -30,6 +35,7 @@ const toLocalInputValue = (date: Date) => {
 const formatRate = (value: number) => `${value.toFixed(1)}%`;
 
 export default function SurveyAnalyticsPage() {
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const now = new Date();
   const initialStart = new Date(now);
   initialStart.setDate(now.getDate() - 30);
@@ -39,6 +45,27 @@ export default function SurveyAnalyticsPage() {
   const [rows, setRows] = useState<AnalyticsRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = "/login?next=/dashboard/surveys/analytics";
+          return;
+        }
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
+        setAuth({ status: "authed" });
+      } catch (err) {
+        setAuth({
+          status: "error",
+          message: err instanceof Error ? err.message : "不明なエラー",
+        });
+      }
+    })();
+  }, []);
 
   const load = async () => {
     setMessage(null);
@@ -80,6 +107,18 @@ export default function SurveyAnalyticsPage() {
       return b.eligible - a.eligible;
     });
   }, [rows]);
+
+  if (auth.status === "loading") {
+    return <main className="page">読み込み中...</main>;
+  }
+
+  if (auth.status === "error") {
+    return (
+      <main className="page">
+        <p className="text-sm">エラー: {auth.message}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="page">

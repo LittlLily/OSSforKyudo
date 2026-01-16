@@ -31,6 +31,11 @@ type ListResponse = {
   error?: string;
 };
 
+type AuthState =
+  | { status: "loading" }
+  | { status: "authed"; role: "admin" | "user" }
+  | { status: "error"; message: string };
+
 const formatDate = (value: string | null) => {
   if (!value) return "-";
   return new Date(value).toLocaleString("ja-JP", {
@@ -53,12 +58,37 @@ const responseLabel = (survey: Survey) => {
 };
 
 export default function SurveysPage() {
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [role, setRole] = useState<"admin" | "user">("user");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = "/login?next=/dashboard/surveys";
+          return;
+        }
+        const data = (await res.json()) as {
+          user?: { role?: "admin" | "user" };
+          error?: string;
+        };
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
+        setAuth({ status: "authed", role: data.user?.role ?? "user" });
+      } catch (err) {
+        setAuth({
+          status: "error",
+          message: err instanceof Error ? err.message : "不明なエラー",
+        });
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (auth.status !== "authed") return;
     (async () => {
       try {
         setLoading(true);
@@ -69,16 +99,16 @@ export default function SurveysPage() {
           return;
         }
         const data = (await res.json()) as ListResponse;
-        if (!res.ok) throw new Error(data.error || "アンケートの読み込みに失敗しました");
+        if (!res.ok)
+          throw new Error(data.error || "アンケートの読み込みに失敗しました");
         setSurveys(data.surveys ?? []);
-        setRole(data.role ?? "user");
       } catch (err) {
-      setMessage(err instanceof Error ? err.message : "不明なエラー");
+        setMessage(err instanceof Error ? err.message : "不明なエラー");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [auth.status]);
 
   const [pendingSurveys, completedSurveys] = useMemo(() => {
     const pending: Survey[] = [];
@@ -93,6 +123,18 @@ export default function SurveysPage() {
     return [pending, completed];
   }, [surveys]);
 
+  if (auth.status === "loading") {
+    return <main className="page">読み込み中...</main>;
+  }
+
+  if (auth.status === "error") {
+    return (
+      <main className="page">
+        <p className="text-sm">エラー: {auth.message}</p>
+      </main>
+    );
+  }
+
   if (loading) {
     return <main className="page">読み込み中...</main>;
   }
@@ -104,7 +146,7 @@ export default function SurveysPage() {
           <HiOutlineChartBar className="text-base" />
           集計
         </Link>
-        {role === "admin" ? (
+        {auth.role === "admin" ? (
           <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/create">
             <HiOutlinePlusCircle className="text-base" />
             アンケート作成
