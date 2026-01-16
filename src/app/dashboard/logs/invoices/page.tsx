@@ -137,11 +137,7 @@ export default function InvoiceLogsPage() {
             <HiOutlineReceiptRefund className="text-2xl" />
             会計ログ
           </h1>
-          <p className="page-subtitle">
-            {auth.role === "admin"
-              ? "全請求の会計ログ"
-              : "自分に紐づく請求の会計ログ"}
-          </p>
+          <p className="page-subtitle">全請求の会計ログ</p>
         </div>
       </div>
 

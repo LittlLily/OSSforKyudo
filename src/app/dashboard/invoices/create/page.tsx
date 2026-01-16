@@ -11,10 +11,16 @@ import {
   HiOutlineSquares2X2,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type UserProfile = {
@@ -59,7 +65,11 @@ export default function InvoiceCreatePage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
         if (!res.ok)
@@ -68,6 +78,7 @@ export default function InvoiceCreatePage() {
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -191,7 +202,10 @@ export default function InvoiceCreatePage() {
     );
   }
 
-  if (auth.role !== "admin") {
+  if (
+    auth.role !== "admin" &&
+    !hasSubPermission(auth.subPermissions, "invoice_admin")
+  ) {
     return (
       <main className="page">
         <div className="inline-list">

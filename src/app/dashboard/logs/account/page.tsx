@@ -136,11 +136,7 @@ export default function AccountLogsPage() {
             <HiOutlineUserCircle className="text-2xl" />
             アカウントログ
           </h1>
-          <p className="page-subtitle">
-            {auth.role === "admin"
-              ? "全ユーザーのアカウント操作ログ"
-              : "自分のアカウント操作ログ"}
-          </p>
+          <p className="page-subtitle">全ユーザーのアカウント操作ログ</p>
         </div>
       </div>
 

@@ -98,7 +98,7 @@ export default function Home() {
         setDashboard({ status: "loading" });
         const [bowsRes, invoicesRes, surveysRes] = await Promise.all([
           fetch("/api/bows?borrower=me", { cache: "no-store" }),
-          fetch("/api/invoices?status=pending", { cache: "no-store" }),
+          fetch("/api/invoices?status=pending&mine=1", { cache: "no-store" }),
           fetch("/api/surveys", { cache: "no-store" }),
         ]);
 

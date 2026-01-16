@@ -51,6 +51,64 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function parseFilters(url: URL) {
+  return {
+    display_name: url.searchParams.get("display_name")?.trim() ?? "",
+    student_number: url.searchParams.get("student_number")?.trim() ?? "",
+    generation: url.searchParams.get("generation")?.trim() ?? "",
+    gender: url.searchParams.get("gender")?.trim() ?? "",
+  };
+}
+
+async function resolveAccountIds(
+  adminClient: ReturnType<typeof getAdminClient>,
+  filters: ReturnType<typeof parseFilters>
+) {
+  const hasFilters = Object.values(filters).some(Boolean);
+  if (!hasFilters) return null;
+
+  let profilesQuery = adminClient
+    .from("profiles")
+    .select("id, display_name, student_number, generation, gender");
+
+  if (filters.display_name) {
+    profilesQuery = profilesQuery.ilike(
+      "display_name",
+      `%${filters.display_name}%`
+    );
+  }
+  if (filters.student_number) {
+    profilesQuery = profilesQuery.ilike(
+      "student_number",
+      `%${filters.student_number}%`
+    );
+  }
+  if (filters.generation) {
+    const generationParts = filters.generation
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (generationParts.length > 1) {
+      profilesQuery = profilesQuery.in("generation", generationParts);
+    } else {
+      profilesQuery = profilesQuery.ilike(
+        "generation",
+        `%${filters.generation}%`
+      );
+    }
+  }
+  if (filters.gender) {
+    profilesQuery = profilesQuery.eq("gender", filters.gender);
+  }
+
+  const profilesResponse = await profilesQuery;
+  if (profilesResponse.error) {
+    throw profilesResponse.error;
+  }
+
+  return (profilesResponse.data ?? []).map((profile) => profile.id as string);
+}
+
 export async function GET(request: Request) {
   const auth = await requireUser();
   if (!auth.ok) {
@@ -58,6 +116,9 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
+  const mineParam = url.searchParams.get("mine")?.trim() ?? "";
+  const mineOnly = mineParam === "1" || mineParam.toLowerCase() === "true";
+  const filters = parseFilters(url);
   const status = url.searchParams.get("status")?.trim() ?? "pending";
 
   let adminClient;
@@ -71,16 +132,26 @@ export async function GET(request: Request) {
   }
 
   try {
+    const accountIds = await resolveAccountIds(adminClient, filters);
+    if (accountIds && accountIds.length === 0) {
+      return NextResponse.json({ invoices: [] });
+    }
+
     let invoicesQuery = adminClient
       .from("invoices")
       .select(
         "id, account_id, amount, billed_at, approved_at, requester_id, approver_id, title, description, status"
       )
-      .eq("account_id", auth.userId)
       .order("billed_at", { ascending: false });
 
     if (status) {
       invoicesQuery = invoicesQuery.eq("status", status);
+    }
+    if (accountIds) {
+      invoicesQuery = invoicesQuery.in("account_id", accountIds);
+    }
+    if (mineOnly) {
+      invoicesQuery = invoicesQuery.eq("account_id", auth.userId);
     }
 
     const invoicesResponse = await invoicesQuery;
@@ -88,10 +159,65 @@ export async function GET(request: Request) {
       throw invoicesResponse.error;
     }
 
-    const invoices = invoicesResponse.data ?? [];
+    const rawInvoices = invoicesResponse.data ?? [];
+    const profileIds = Array.from(
+      new Set(
+        rawInvoices.flatMap((invoice) => [
+          invoice.account_id,
+          invoice.requester_id,
+          invoice.approver_id,
+        ])
+      )
+    ).filter(Boolean);
+
+    let profilesById = new Map<
+      string,
+      { display_name: string | null; student_number: string | null }
+    >();
+    if (profileIds.length > 0) {
+      const profilesResponse = await adminClient
+        .from("profiles")
+        .select("id, display_name, student_number")
+        .in("id", profileIds);
+      if (profilesResponse.error) {
+        throw profilesResponse.error;
+      }
+      profilesById = new Map(
+        (profilesResponse.data ?? []).map((profile) => [
+          profile.id,
+          {
+            display_name: profile.display_name ?? null,
+            student_number: profile.student_number ?? null,
+          },
+        ])
+      );
+    }
+
+    const invoices = rawInvoices.map((invoice) => ({
+      id: invoice.id,
+      account_id: invoice.account_id,
+      amount: invoice.amount,
+      billed_at: invoice.billed_at,
+      approved_at: invoice.approved_at,
+      requester_id: invoice.requester_id,
+      approver_id: invoice.approver_id,
+      title: invoice.title,
+      description: invoice.description,
+      status: invoice.status,
+      account_display_name:
+        profilesById.get(invoice.account_id)?.display_name ?? null,
+      account_student_number:
+        profilesById.get(invoice.account_id)?.student_number ?? null,
+      requester_display_name:
+        profilesById.get(invoice.requester_id)?.display_name ?? null,
+      approver_display_name:
+        invoice.approver_id
+          ? profilesById.get(invoice.approver_id)?.display_name ?? null
+          : null,
+    }));
 
     await Promise.all(
-      invoices.map((invoice) =>
+      rawInvoices.map((invoice) =>
         logInvoiceAction(adminClient, {
           action: "請求閲覧",
           operatorId: auth.userId,

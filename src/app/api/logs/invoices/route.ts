@@ -60,10 +60,6 @@ export async function GET() {
       )
       .order("created_at", { ascending: false });
 
-    if (auth.role !== "admin") {
-      logsQuery = logsQuery.eq("subject_user_id", auth.userId);
-    }
-
     const logsResponse = await logsQuery;
     if (logsResponse.error) {
       throw logsResponse.error;

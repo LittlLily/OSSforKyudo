@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { hasSubPermission } from "@/lib/permissions";
 
 const lengthOptions = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 export default function BowCreatePage() {
@@ -28,7 +34,11 @@ export default function BowCreatePage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
         if (!res.ok) {
@@ -38,6 +48,7 @@ export default function BowCreatePage() {
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -106,7 +117,10 @@ export default function BowCreatePage() {
     );
   }
 
-  if (auth.role !== "admin") {
+  if (
+    auth.role !== "admin" &&
+    !hasSubPermission(auth.subPermissions, "bow_admin")
+  ) {
     return (
       <main className="page">
         <p className="text-sm">権限がありません</p>

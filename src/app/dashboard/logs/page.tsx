@@ -71,9 +71,7 @@ export default function LogsPage() {
             アカウントログ
           </h2>
           <p className="mt-2 text-sm">
-            {auth.role === "admin"
-              ? "全ユーザーの操作履歴"
-              : "自分の操作履歴"}
+            全ユーザーの操作履歴
           </p>
         </Link>
         <Link className="card" href="/dashboard/logs/invoices">
@@ -82,9 +80,7 @@ export default function LogsPage() {
             会計ログ
           </h2>
           <p className="mt-2 text-sm">
-            {auth.role === "admin"
-              ? "全請求の操作履歴"
-              : "自分に紐づく請求の履歴"}
+            全請求の操作履歴
           </p>
         </Link>
         <Link className="card" href="/dashboard/logs/bows">

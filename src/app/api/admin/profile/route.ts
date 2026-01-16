@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { logAccountAction } from "@/lib/audit";
+import { normalizeSubPermissions } from "@/lib/permissions";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -16,6 +17,11 @@ type ProfileUpdate = {
   department?: string | null;
   ryuha?: string | null;
   position?: string | null;
+  public_field_1?: string | null;
+  public_field_2?: string | null;
+  restricted_field_1?: string | null;
+  restricted_field_2?: string | null;
+  sub_permissions?: string[] | null;
 };
 
 type RoleUpdate = "admin" | "user";
@@ -120,7 +126,7 @@ export async function GET(request: Request) {
   const { data, error } = await adminClient
     .from("profiles")
     .select(
-      "id, display_name, student_number, name_kana, generation, gender, department, ryuha, position"
+      "id, display_name, student_number, name_kana, generation, gender, department, ryuha, position, public_field_1, public_field_2, restricted_field_1, restricted_field_2, sub_permissions"
     )
     .eq("id", id)
     .maybeSingle();
@@ -191,6 +197,11 @@ export async function POST(request: Request) {
     "department",
     "ryuha",
     "position",
+    "public_field_1",
+    "public_field_2",
+    "restricted_field_1",
+    "restricted_field_2",
+    "sub_permissions",
   ];
 
   allowedKeys.forEach((key) => {
@@ -200,6 +211,10 @@ export async function POST(request: Request) {
         if (value === "male" || value === "female" || value == null) {
           update[key] = value ?? null;
         }
+        return;
+      }
+      if (key === "sub_permissions") {
+        update[key] = normalizeSubPermissions(value);
         return;
       }
       update[key] = value ?? null;

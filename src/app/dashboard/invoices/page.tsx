@@ -16,10 +16,16 @@ import {
   HiOutlineTrash,
   HiOutlineXMark,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type Invoice = {
@@ -68,6 +74,10 @@ export default function InvoicesPage() {
     title: "",
     description: "",
   });
+  const isAdmin =
+    auth.status === "authed" &&
+    (auth.role === "admin" ||
+      hasSubPermission(auth.subPermissions, "invoice_admin"));
 
   useEffect(() => {
     (async () => {
@@ -78,7 +88,11 @@ export default function InvoicesPage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
         if (!res.ok)
@@ -87,6 +101,7 @@ export default function InvoicesPage() {
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -101,7 +116,7 @@ export default function InvoicesPage() {
     if (auth.status === "authed") {
       void loadInvoices();
     }
-  }, [auth.status]);
+  }, [auth.status, isAdmin]);
 
   const sortedInvoices = useMemo(() => {
     return [...invoices].sort((a, b) => {
@@ -117,6 +132,8 @@ export default function InvoicesPage() {
       timeZone: "Asia/Tokyo",
     });
   };
+
+  const baseInvoicePath = isAdmin ? "/api/admin/invoices" : "/api/invoices";
 
   const buildSearchParams = (values: Filters, status: InvoiceStatus) => {
     const params = new URLSearchParams();
@@ -147,7 +164,7 @@ export default function InvoicesPage() {
         nextFilters ?? filters,
         nextStatus ?? statusFilter
       );
-      const res = await fetch(`/api/admin/invoices?${query}`, {
+      const res = await fetch(`${baseInvoicePath}?${query}`, {
         cache: "no-store",
       });
       const data = (await res.json()) as {
@@ -292,8 +309,6 @@ export default function InvoicesPage() {
     );
   }
 
-  const isAdmin = auth.role === "admin";
-
   return (
     <main className="page">
       {isAdmin ? (
@@ -343,100 +358,98 @@ export default function InvoicesPage() {
         </div>
       </section>
 
-      {isAdmin ? (
-        <section className="section">
-          <h2 className="section-title flex items-center gap-2">
-            <HiOutlineAdjustmentsHorizontal className="text-base" />
-            絞り込み
-          </h2>
-          <div className="card space-y-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">表示名</span>
-                <input
-                  className="w-full"
-                  value={filters.display_name}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      display_name: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">学籍番号</span>
-                <input
-                  className="w-full"
-                  value={filters.student_number}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      student_number: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">代</span>
-                <input
-                  className="w-full"
-                  value={filters.generation}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      generation: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">性別</span>
-                <select
-                  className="w-full"
-                  value={filters.gender}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      gender: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="">すべて</option>
-                  <option value="male">男性</option>
-                  <option value="female">女性</option>
-                  <option value="other">その他</option>
-                </select>
-              </label>
-            </div>
-            <div className="inline-list">
-              <button
-                className="btn btn-ghost"
-                onClick={() => void loadInvoices()}
-                type="button"
+      <section className="section">
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineAdjustmentsHorizontal className="text-base" />
+          絞り込み
+        </h2>
+        <div className="card space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">表示名</span>
+              <input
+                className="w-full"
+                value={filters.display_name}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    display_name: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">学籍番号</span>
+              <input
+                className="w-full"
+                value={filters.student_number}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    student_number: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">代</span>
+              <input
+                className="w-full"
+                value={filters.generation}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    generation: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">性別</span>
+              <select
+                className="w-full"
+                value={filters.gender}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    gender: event.target.value,
+                  }))
+                }
               >
-                <span className="inline-flex items-center gap-2">
-                  <HiOutlineMagnifyingGlass className="text-base" />
-                  検索
-                </span>
-              </button>
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setFilters(emptyFilters);
-                  void loadInvoices(emptyFilters);
-                }}
-                type="button"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <HiOutlineArrowPath className="text-base" />
-                  リセット
-                </span>
-              </button>
-            </div>
+                <option value="">すべて</option>
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+              </select>
+            </label>
           </div>
-        </section>
-      ) : null}
+          <div className="inline-list">
+            <button
+              className="btn btn-ghost"
+              onClick={() => void loadInvoices()}
+              type="button"
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineMagnifyingGlass className="text-base" />
+                検索
+              </span>
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                setFilters(emptyFilters);
+                void loadInvoices(emptyFilters);
+              }}
+              type="button"
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineArrowPath className="text-base" />
+                リセット
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
 
       <section className="section">
         <h2 className="section-title flex items-center gap-2">

@@ -24,6 +24,10 @@ type ProfileRow = {
   department: string | null;
   ryuha: string | null;
   position: string | null;
+  public_field_1?: string | null;
+  public_field_2?: string | null;
+  restricted_field_1?: string | null;
+  restricted_field_2?: string | null;
 };
 
 type ListState =
@@ -85,6 +89,10 @@ const adminFields: Array<keyof ProfileRow> = [
   "department",
   "ryuha",
   "position",
+  "public_field_1",
+  "public_field_2",
+  "restricted_field_1",
+  "restricted_field_2",
 ];
 
 const fieldLabels: Record<keyof ProfileRow, string> = {
@@ -99,6 +107,10 @@ const fieldLabels: Record<keyof ProfileRow, string> = {
   department: "学科",
   ryuha: "流派",
   position: "役職",
+  public_field_1: "誰でも1",
+  public_field_2: "誰でも2",
+  restricted_field_1: "制限1",
+  restricted_field_2: "制限2",
 };
 
 const roleLabel = (role?: "admin" | "user") =>

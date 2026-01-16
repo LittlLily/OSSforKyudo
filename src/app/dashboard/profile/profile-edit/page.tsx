@@ -6,6 +6,12 @@ import {
   HiOutlineCheckCircle,
   HiOutlinePencilSquare,
 } from "react-icons/hi2";
+import {
+  SUB_PERMISSION_LABELS,
+  SUB_PERMISSIONS,
+  normalizeSubPermissions,
+  type SubPermission,
+} from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
@@ -21,6 +27,10 @@ type ProfileForm = {
   department: string;
   ryuha: string;
   position: string;
+  public_field_1: string;
+  public_field_2: string;
+  restricted_field_1: string;
+  restricted_field_2: string;
 };
 
 const emptyForm: ProfileForm = {
@@ -32,6 +42,10 @@ const emptyForm: ProfileForm = {
   department: "",
   ryuha: "",
   position: "",
+  public_field_1: "",
+  public_field_2: "",
+  restricted_field_1: "",
+  restricted_field_2: "",
 };
 
 export default function AdminProfileEditPage() {
@@ -40,6 +54,7 @@ export default function AdminProfileEditPage() {
   const [loadedId, setLoadedId] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>(emptyForm);
   const [role, setRole] = useState<"" | "admin" | "user">("");
+  const [subPermissions, setSubPermissions] = useState<SubPermission[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,6 +91,14 @@ export default function AdminProfileEditPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const toggleSubPermission = (permission: SubPermission) => {
+    setSubPermissions((prev) =>
+      prev.includes(permission)
+        ? prev.filter((entry) => entry !== permission)
+        : [...prev, permission]
+    );
+  };
+
   const handleLoad = async () => {
     if (!targetEmail.trim()) {
       setMessage("エラー: メールアドレスは必須です");
@@ -96,7 +119,10 @@ export default function AdminProfileEditPage() {
       const bodyText = await res.text();
       const data = bodyText
         ? (JSON.parse(bodyText) as {
-            profile?: Partial<ProfileForm> & { id?: string | null };
+            profile?: Partial<ProfileForm> & {
+              id?: string | null;
+              sub_permissions?: string[] | null;
+            };
             role?: "admin" | "user";
             error?: string;
           }) ?? {}
@@ -117,8 +143,13 @@ export default function AdminProfileEditPage() {
         department: profile.department ?? "",
         ryuha: profile.ryuha ?? "",
         position: profile.position ?? "",
+        public_field_1: profile.public_field_1 ?? "",
+        public_field_2: profile.public_field_2 ?? "",
+        restricted_field_1: profile.restricted_field_1 ?? "",
+        restricted_field_2: profile.restricted_field_2 ?? "",
       });
       setRole(data.role ?? "user");
+      setSubPermissions(normalizeSubPermissions(profile.sub_permissions));
       setLoadedId(profile.id ?? null);
       if (profile.id) {
         setMessage(`読み込み完了: ${profile.id}`);
@@ -162,6 +193,11 @@ export default function AdminProfileEditPage() {
             department: toNullable(form.department),
             ryuha: toNullable(form.ryuha),
             position: toNullable(form.position),
+            public_field_1: toNullable(form.public_field_1),
+            public_field_2: toNullable(form.public_field_2),
+            restricted_field_1: toNullable(form.restricted_field_1),
+            restricted_field_2: toNullable(form.restricted_field_2),
+            sub_permissions: subPermissions,
           },
         }),
       });
@@ -324,6 +360,50 @@ export default function AdminProfileEditPage() {
         </label>
         <label className="field">
           <span className="text-sm font-semibold text-[color:var(--muted)]">
+            誰でも1
+          </span>
+          <input
+            className="w-full"
+            value={form.public_field_1}
+            onChange={(event) => setField("public_field_1", event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            誰でも2
+          </span>
+          <input
+            className="w-full"
+            value={form.public_field_2}
+            onChange={(event) => setField("public_field_2", event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            制限1
+          </span>
+          <input
+            className="w-full"
+            value={form.restricted_field_1}
+            onChange={(event) =>
+              setField("restricted_field_1", event.target.value)
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            制限2
+          </span>
+          <input
+            className="w-full"
+            value={form.restricted_field_2}
+            onChange={(event) =>
+              setField("restricted_field_2", event.target.value)
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
             権限
           </span>
           <select
@@ -338,6 +418,26 @@ export default function AdminProfileEditPage() {
             <option value="admin">管理者</option>
           </select>
         </label>
+        <div className="space-y-2">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            サブ権限
+          </span>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SUB_PERMISSIONS.map((permission) => (
+              <label
+                key={permission}
+                className="inline-flex items-center gap-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={subPermissions.includes(permission)}
+                  onChange={() => toggleSubPermission(permission)}
+                />
+                {SUB_PERMISSION_LABELS[permission]}
+              </label>
+            ))}
+          </div>
+        </div>
 
         <button
           className="btn btn-primary"

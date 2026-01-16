@@ -12,10 +12,15 @@ import {
   HiOutlineUserGroup,
   HiOutlineUserPlus,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; role: "admin" | "user" }
+  | {
+      status: "authed";
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type QuestionForm = {
@@ -85,17 +90,18 @@ export default function SurveyCreatePage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { role?: "admin" | "user" };
+          user?: { role?: "admin" | "user"; subPermissions?: string[] };
           error?: string;
         };
         if (!res.ok)
           throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         const role = data.user?.role ?? "user";
-        if (role !== "admin") {
+        const subPermissions = data.user?.subPermissions ?? [];
+        if (role !== "admin" && !hasSubPermission(subPermissions, "survey_admin")) {
           setAuth({ status: "error", message: "権限がありません" });
           return;
         }
-        setAuth({ status: "authed", role });
+        setAuth({ status: "authed", role, subPermissions });
       } catch (err) {
         setAuth({
           status: "error",
@@ -355,7 +361,7 @@ export default function SurveyCreatePage() {
               }
             >
               <option value="draft">下書き</option>
-              <option value="open">公開中</option>
+              <option value="open">公開</option>
               <option value="closed">終了</option>
             </select>
           </div>

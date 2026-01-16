@@ -13,6 +13,7 @@ import {
   HiOutlinePlusCircle,
   HiOutlineTrash,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type SurveyDetail = {
   role: "admin" | "user";
@@ -55,7 +56,11 @@ type SurveyDetail = {
     countsByOption: Record<string, number>;
     respondentsByOption: Record<
       string,
-      { id: string; display_name: string | null; student_number: string | null }[]
+      {
+        id: string;
+        display_name: string | null;
+        student_number: string | null;
+      }[]
     >;
     unresponded: {
       id: string;
@@ -69,7 +74,11 @@ type DetailResponse = SurveyDetail & { error?: string };
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed" }
+  | {
+      status: "authed";
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 const formatDate = (value: string | null) => {
@@ -84,7 +93,7 @@ const statusLabel = (detail: SurveyDetail) => {
   if (detail.survey.status === "closed") return "終了";
   if (detail.availability === "upcoming") return "開始前";
   if (detail.availability === "closed") return "終了";
-  return "公開中";
+  return "公開";
 };
 
 export default function SurveyDetailPage() {
@@ -106,10 +115,17 @@ export default function SurveyDetailPage() {
           location.href = `/login?next=/dashboard/surveys/${params.id}`;
           return;
         }
-        const data = (await res.json()) as { error?: string };
+        const data = (await res.json()) as {
+          user?: { role?: "admin" | "user"; subPermissions?: string[] };
+          error?: string;
+        };
         if (!res.ok)
           throw new Error(data.error || "ユーザーの読み込みに失敗しました");
-        setAuth({ status: "authed" });
+        setAuth({
+          status: "authed",
+          role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
+        });
       } catch (err) {
         setAuth({
           status: "error",
@@ -148,7 +164,11 @@ export default function SurveyDetailPage() {
     }
   }, [params?.id, auth.status]);
 
-  const updateAnswer = (questionId: string, optionId: string, checked: boolean) => {
+  const updateAnswer = (
+    questionId: string,
+    optionId: string,
+    checked: boolean
+  ) => {
     setAnswers((prev) => {
       const current = prev[questionId] ?? [];
       if (checked) {
@@ -225,9 +245,11 @@ export default function SurveyDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId, label }),
       });
-      const data = (await res.json()) as { option?: { id: string; label: string }; error?: string };
-      if (!res.ok)
-        throw new Error(data.error || "選択肢の追加に失敗しました");
+      const data = (await res.json()) as {
+        option?: { id: string; label: string };
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "選択肢の追加に失敗しました");
       setDetail((prev) => {
         const newOption = data.option;
         if (!prev || !newOption) return prev;
@@ -287,7 +309,10 @@ export default function SurveyDetailPage() {
       </h1>
       <div className="inline-list">
         <span className="chip">{statusLabel(detail)}</span>
-        {detail.role === "admin" && detail.survey.status === "draft" ? (
+        {auth.status === "authed" &&
+        (auth.role === "admin" ||
+          hasSubPermission(auth.subPermissions, "survey_admin")) &&
+        detail.survey.status === "draft" ? (
           <>
             <Link
               className="btn btn-ghost inline-flex items-center gap-2"
@@ -315,7 +340,9 @@ export default function SurveyDetailPage() {
 
       <div className="text-xs text-[color:var(--muted)]">
         <span>開始: {formatDate(detail.survey.opens_at)}</span>
-        <span className="ml-3">終了: {formatDate(detail.survey.closes_at)}</span>
+        <span className="ml-3">
+          終了: {formatDate(detail.survey.closes_at)}
+        </span>
       </div>
 
       {message ? <p className="text-sm">エラー: {message}</p> : null}
@@ -347,7 +374,9 @@ export default function SurveyDetailPage() {
                           type="radio"
                           name={question.id}
                           checked={checked}
-                          onChange={() => setSingleAnswer(question.id, option.id)}
+                          onChange={() =>
+                            setSingleAnswer(question.id, option.id)
+                          }
                         />
                         {option.label}
                       </label>
@@ -362,7 +391,11 @@ export default function SurveyDetailPage() {
                         type="checkbox"
                         checked={checked}
                         onChange={(event) =>
-                          updateAnswer(question.id, option.id, event.target.checked)
+                          updateAnswer(
+                            question.id,
+                            option.id,
+                            event.target.checked
+                          )
                         }
                       />
                       {option.label}
@@ -409,8 +442,8 @@ export default function SurveyDetailPage() {
               {saving
                 ? "送信中..."
                 : detail.response
-                  ? "回答を更新"
-                  : "回答を送信"}
+                ? "回答を更新"
+                : "回答を送信"}
             </span>
           </button>
         </section>
@@ -436,11 +469,12 @@ export default function SurveyDetailPage() {
             </div>
             <div className="space-y-1 text-sm">
               {question.options.map((option) => (
-                <div key={option.id} className="flex items-center justify-between gap-2">
+                <div
+                  key={option.id}
+                  className="flex items-center justify-between gap-2"
+                >
                   <span>{option.label}</span>
-                  <span>
-                    {detail.results.countsByOption[option.id] ?? 0}
-                  </span>
+                  <span>{detail.results.countsByOption[option.id] ?? 0}</span>
                 </div>
               ))}
             </div>

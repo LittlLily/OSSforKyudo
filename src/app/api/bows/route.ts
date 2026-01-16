@@ -3,30 +3,15 @@ import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { logBowAction } from "@/lib/audit";
+import {
+  hasAdminOrSubPermission,
+  requireUserWithSubPermissions,
+} from "@/lib/permissions.server";
 
 const LENGTH_VALUES = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 type BowLength = (typeof LENGTH_VALUES)[number];
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-
-type AuthResult =
-  | { ok: true; userId: string; role: "admin" | "user" }
-  | { ok: false; status: number; message: string };
-
-async function requireUser(): Promise<AuthResult> {
-  const supabase = createClient(await cookies());
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    return { ok: false, status: 500, message: error.message };
-  }
-  if (!data.user) {
-    return { ok: false, status: 401, message: "unauthorized" };
-  }
-  const role =
-    (data.user.app_metadata?.role as "admin" | "user") ?? "user";
-  return { ok: true, userId: data.user.id, role };
-}
 
 function normalizeLength(value?: string | null): BowLength | null {
   if (!value) return null;
@@ -46,7 +31,7 @@ function getAdminClient() {
 }
 
 export async function GET(request: Request) {
-  const auth = await requireUser();
+  const auth = await requireUserWithSubPermissions();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
@@ -163,11 +148,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireUser();
+  const auth = await requireUserWithSubPermissions();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
-  if (auth.role !== "admin") {
+  if (!hasAdminOrSubPermission(auth, "bow_admin")) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 

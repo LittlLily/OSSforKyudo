@@ -8,6 +8,7 @@ import {
   HiOutlineClock,
   HiOutlinePlusCircle,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type Survey = {
   id: string;
@@ -33,7 +34,11 @@ type ListResponse = {
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; role: "admin" | "user" }
+  | {
+      status: "authed";
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 const formatDate = (value: string | null) => {
@@ -48,7 +53,7 @@ const statusLabel = (survey: Survey) => {
   if (survey.status === "closed") return "終了";
   if (survey.availability === "upcoming") return "開始前";
   if (survey.availability === "closed") return "終了";
-  return "公開中";
+  return "公開";
 };
 
 const responseLabel = (survey: Survey) => {
@@ -72,12 +77,16 @@ export default function SurveysPage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { role?: "admin" | "user" };
+          user?: { role?: "admin" | "user"; subPermissions?: string[] };
           error?: string;
         };
         if (!res.ok)
           throw new Error(data.error || "ユーザーの読み込みに失敗しました");
-        setAuth({ status: "authed", role: data.user?.role ?? "user" });
+        setAuth({
+          status: "authed",
+          role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
+        });
       } catch (err) {
         setAuth({
           status: "error",
@@ -142,12 +151,20 @@ export default function SurveysPage() {
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/analytics">
+        <Link
+          className="btn btn-primary inline-flex items-center gap-2"
+          href="/dashboard/surveys/analytics"
+        >
           <HiOutlineChartBar className="text-base" />
           集計
         </Link>
-        {auth.role === "admin" ? (
-          <Link className="btn btn-primary inline-flex items-center gap-2" href="/dashboard/surveys/create">
+        {auth.status === "authed" &&
+        (auth.role === "admin" ||
+          hasSubPermission(auth.subPermissions, "survey_admin")) ? (
+          <Link
+            className="btn btn-primary inline-flex items-center gap-2"
+            href="/dashboard/surveys/create"
+          >
             <HiOutlinePlusCircle className="text-base" />
             アンケート作成
           </Link>

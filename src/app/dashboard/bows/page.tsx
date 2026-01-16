@@ -9,10 +9,16 @@ import {
   HiOutlinePlusCircle,
   HiOutlineTrash,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 export default function BowMenuPage() {
@@ -27,7 +33,11 @@ export default function BowMenuPage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
         if (!res.ok) {
@@ -37,6 +47,7 @@ export default function BowMenuPage() {
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -76,7 +87,9 @@ export default function BowMenuPage() {
           <HiOutlineArrowRightCircle className="text-lg" />
           弓貸出
         </Link>
-        {auth.role === "admin" ? (
+        {auth.status === "authed" &&
+        (auth.role === "admin" ||
+          hasSubPermission(auth.subPermissions, "bow_admin")) ? (
           <>
             <Link
               className="btn btn-primary py-6 inline-flex items-center gap-3"

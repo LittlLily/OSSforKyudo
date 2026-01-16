@@ -6,10 +6,16 @@ import {
   HiOutlineMagnifyingGlass,
   HiOutlineTrash,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type BowRow = {
@@ -62,7 +68,11 @@ export default function BowDeletePage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
         if (!res.ok) {
@@ -72,6 +82,7 @@ export default function BowDeletePage() {
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -172,7 +183,10 @@ export default function BowDeletePage() {
     );
   }
 
-  if (auth.role !== "admin") {
+  if (
+    auth.role !== "admin" &&
+    !hasSubPermission(auth.subPermissions, "bow_admin")
+  ) {
     return (
       <main className="page">
         <p className="text-sm">権限がありません</p>
