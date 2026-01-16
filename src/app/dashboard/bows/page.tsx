@@ -80,17 +80,17 @@ export default function BowMenuPage() {
           <HiOutlineClipboardDocumentList className="text-lg" />
           弓一覧
         </Link>
-        <Link
-          className="btn btn-primary py-6 inline-flex items-center gap-3"
-          href="/dashboard/bows/bow-loan"
-        >
-          <HiOutlineArrowRightCircle className="text-lg" />
-          弓貸出
-        </Link>
         {auth.status === "authed" &&
         (auth.role === "admin" ||
           hasSubPermission(auth.subPermissions, "bow_admin")) ? (
           <>
+            <Link
+              className="btn btn-primary py-6 inline-flex items-center gap-3"
+              href="/dashboard/bows/bow-loan"
+            >
+              <HiOutlineArrowRightCircle className="text-lg" />
+              弓貸出
+            </Link>
             <Link
               className="btn btn-primary py-6 inline-flex items-center gap-3"
               href="/dashboard/bows/bow-create"
