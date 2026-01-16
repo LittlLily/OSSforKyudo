@@ -2,6 +2,7 @@ export const SUB_PERMISSIONS = [
   "survey_admin",
   "bow_admin",
   "invoice_admin",
+  "calendar_admin",
 ] as const;
 
 export type SubPermission = (typeof SUB_PERMISSIONS)[number];
@@ -10,6 +11,7 @@ export const SUB_PERMISSION_LABELS: Record<SubPermission, string> = {
   survey_admin: "アンケート",
   bow_admin: "弓管理",
   invoice_admin: "請求",
+  calendar_admin: "カレンダー",
 };
 
 export function normalizeSubPermissions(value: unknown): SubPermission[] {

@@ -9,6 +9,7 @@ import {
   HiOutlineUserCircle,
 } from "react-icons/hi2";
 import { signOut } from "@/app/actions/auth";
+import { SUB_PERMISSION_LABELS } from "@/lib/permissions";
 
 type ViewState =
   | { status: "loading" }
@@ -18,6 +19,7 @@ type ViewState =
       role: "admin" | "user";
       displayName?: string | null;
       studentNumber?: string | null;
+      subPermissions: string[];
     }
   | { status: "error"; message: string };
 
@@ -33,7 +35,11 @@ export default function SidebarFooter() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           profile?: {
             displayName?: string | null;
             studentNumber?: string | null;
@@ -48,6 +54,7 @@ export default function SidebarFooter() {
           role: data.user?.role ?? "user",
           displayName: data.profile?.displayName ?? null,
           studentNumber: data.profile?.studentNumber ?? null,
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setState({
@@ -72,6 +79,15 @@ export default function SidebarFooter() {
     );
   }
 
+  const roleLabel = state.role === "admin" ? "管理者" : "一般";
+  const subPermissionLabels =
+    state.subPermissions.length > 0
+      ? state.subPermissions
+          .map((permission) => SUB_PERMISSION_LABELS[permission])
+          .filter(Boolean)
+          .join("・")
+      : "-";
+
   return (
     <div className="space-y-3 text-sm">
       <p className="flex items-center gap-2">
@@ -82,8 +98,19 @@ export default function SidebarFooter() {
         <HiOutlineIdentification className="text-base" />
         学籍番号: {state.studentNumber ?? "-"}
       </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineShieldCheck className="text-base" />
+        権限: {roleLabel}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineShieldCheck className="text-base" />
+        サブ権限: {subPermissionLabels}
+      </p>
       <form action={signOut}>
-        <button className="btn btn-ghost inline-flex items-center gap-2" type="submit">
+        <button
+          className="btn btn-ghost inline-flex items-center gap-2"
+          type="submit"
+        >
           <HiOutlineArrowRightOnRectangle className="text-base" />
           サインアウト
         </button>
