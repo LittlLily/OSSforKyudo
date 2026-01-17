@@ -6,6 +6,7 @@ import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
   HiOutlinePlusCircle,
+  HiOutlineTrash,
   HiOutlineXMark,
 } from "react-icons/hi2";
 import { hasSubPermission } from "@/lib/permissions";
@@ -26,6 +27,7 @@ type CalendarEvent = {
   starts_at: string;
   ends_at: string;
   all_day: boolean;
+  color: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -38,6 +40,7 @@ type CalendarOccurrence = {
   allDay: boolean;
   startsAt: Date;
   endsAt: Date;
+  color: string | null;
 };
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
@@ -45,15 +48,21 @@ const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 const pad2 = (value: number) => value.toString().padStart(2, "0");
 
 const formatDateKey = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
-    date.getDate()
-  )}`;
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const startOfDay = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 const endOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+  new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
 
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
@@ -106,8 +115,13 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] =
-    useState<CalendarOccurrence | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarOccurrence | null>(
+    null
+  );
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSelection, setBulkSelection] = useState<string[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -221,6 +235,7 @@ export default function CalendarPage() {
         allDay: event.all_day,
         startsAt,
         endsAt,
+        color: event.color ?? null,
       });
     }
 
@@ -237,7 +252,79 @@ export default function CalendarPage() {
 
   const canEdit =
     auth.status === "authed" &&
-    (auth.role === "admin" || hasSubPermission(auth.subPermissions, "calendar_admin"));
+    (auth.role === "admin" ||
+      hasSubPermission(auth.subPermissions, "calendar_admin"));
+
+  const handleDelete = async () => {
+    if (!selectedEvent) return;
+    if (!confirm("この予定を削除しますか？")) return;
+
+    setDeleteLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/calendar/${selectedEvent.id}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "予定の削除に失敗しました");
+      location.href = "/dashboard/calendar";
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
+      setDeleteLoading(false);
+    }
+  };
+
+  const toggleBulkMode = () => {
+    setBulkMode((prev) => {
+      const next = !prev;
+      if (!next) setBulkSelection([]);
+      return next;
+    });
+  };
+
+  const toggleBulkSelection = (eventId: string) => {
+    setBulkSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(eventId)) {
+        next.delete(eventId);
+      } else {
+        next.add(eventId);
+      }
+      return Array.from(next);
+    });
+  };
+
+  const clearBulkSelection = () => {
+    setBulkSelection([]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (bulkSelection.length === 0) {
+      setMessage("削除する予定を選択してください");
+      return;
+    }
+    if (!confirm(`${bulkSelection.length}件の予定を削除しますか？`)) return;
+
+    setBulkLoading(true);
+    setMessage(null);
+
+    try {
+      const results = await Promise.all(
+        bulkSelection.map((id) =>
+          fetch(`/api/calendar/${id}`, { method: "DELETE" })
+        )
+      );
+      for (const res of results) {
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) throw new Error(data.error || "予定の削除に失敗しました");
+      }
+      location.href = "/dashboard/calendar";
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
+      setBulkLoading(false);
+    }
+  };
 
   if (auth.status === "loading" || loading) {
     return <main className="page">読み込み中...</main>;
@@ -254,19 +341,25 @@ export default function CalendarPage() {
   return (
     <main className="page">
       <header className="page-header">
-        <div>
-          <p className="page-subtitle">共有予定表</p>
-          <h1 className="page-title">カレンダー</h1>
-        </div>
+        <div></div>
         <div className="page-actions">
           {canEdit ? (
-            <Link
-              className="btn btn-primary inline-flex items-center gap-2"
-              href="/dashboard/calendar/create"
-            >
-              <HiOutlinePlusCircle className="text-base" />
-              予定作成
-            </Link>
+            <>
+              <Link
+                className="btn btn-primary inline-flex items-center gap-2"
+                href="/dashboard/calendar/create"
+              >
+                <HiOutlinePlusCircle className="text-base" />
+                予定作成
+              </Link>
+              <button
+                className="btn btn-primary inline-flex items-center gap-2"
+                type="button"
+                onClick={toggleBulkMode}
+              >
+                {bulkMode ? "まとめて削除を終了" : "まとめて削除"}
+              </button>
+            </>
           ) : null}
         </div>
       </header>
@@ -278,9 +371,7 @@ export default function CalendarPage() {
               className="btn btn-ghost"
               type="button"
               onClick={() =>
-                setMonth(
-                  new Date(month.getFullYear(), month.getMonth() - 1, 1)
-                )
+                setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
               }
             >
               <HiOutlineChevronLeft className="text-base" />
@@ -289,9 +380,7 @@ export default function CalendarPage() {
               className="btn btn-ghost"
               type="button"
               onClick={() =>
-                setMonth(
-                  new Date(month.getFullYear(), month.getMonth() + 1, 1)
-                )
+                setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
               }
             >
               <HiOutlineChevronRight className="text-base" />
@@ -313,6 +402,30 @@ export default function CalendarPage() {
         </div>
 
         {message ? <p className="text-sm">エラー: {message}</p> : null}
+
+        {bulkMode ? (
+          <div className="inline-list">
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={bulkLoading}
+            >
+              {bulkLoading ? "削除中..." : "削除確定"}
+            </button>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              onClick={clearBulkSelection}
+              disabled={bulkLoading || bulkSelection.length === 0}
+            >
+              選択解除
+            </button>
+            <span className="text-xs text-[color:var(--muted)]">
+              選択中: {bulkSelection.length} 件
+            </span>
+          </div>
+        ) : null}
 
         <div className="overflow-x-auto">
           <div className="min-w-[720px] rounded-2xl border border-[color:var(--border)] bg-[linear-gradient(135deg,rgba(255,253,246,0.96),rgba(255,248,232,0.96))]">
@@ -355,7 +468,13 @@ export default function CalendarPage() {
                         const timeLabel = formatDayTimeLabel(event, day);
                         const content = (
                           <>
-                            <span className="block text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                            <span
+                              className={`block text-[10px] uppercase tracking-[0.2em] ${
+                                event.color
+                                  ? "text-[color:var(--muted)]"
+                                  : "text-[color:var(--muted)]"
+                              }`}
+                            >
                               {timeLabel}
                             </span>
                             <span className="text-sm font-semibold leading-snug">
@@ -364,12 +483,31 @@ export default function CalendarPage() {
                           </>
                         );
                         const occurrenceKey = `${event.id}-${key}-${timeLabel}`;
+                        const isSelected = bulkSelection.includes(event.id);
+                        const isColored = Boolean(event.color) && !isSelected;
+                        const eventStyle = isColored
+                          ? {
+                              backgroundColor: event.color ?? undefined,
+                              borderColor: event.color ?? undefined,
+                            }
+                          : undefined;
                         return (
                           <button
                             key={occurrenceKey}
                             type="button"
-                            className="block w-full text-left rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-strong)] px-2 py-2 shadow-[0_6px_14px_rgba(130,65,0,0.08)] transition hover:border-[color:var(--accent)]"
-                            onClick={() => setSelectedEvent(event)}
+                            className={`block w-full text-left rounded-xl border px-2 py-2 shadow-[0_6px_14px_rgba(130,65,0,0.08)] transition ${
+                              isSelected
+                                ? "border-[color:var(--accent)] bg-[color:var(--accent)] text-white"
+                                : isColored
+                                  ? "text-[color:var(--foreground)] hover:opacity-90"
+                                  : "border-[color:var(--border)] bg-[color:var(--surface-strong)] hover:border-[color:var(--accent)]"
+                            }`}
+                            onClick={() =>
+                              bulkMode
+                                ? toggleBulkSelection(event.id)
+                                : setSelectedEvent(event)
+                            }
+                            style={eventStyle}
                           >
                             {content}
                           </button>
@@ -418,7 +556,9 @@ export default function CalendarPage() {
               <p className="text-[color:var(--muted)]">
                 {selectedEvent.allDay
                   ? "終日"
-                  : `${selectedEvent.startsAt.toLocaleString("ja-JP")} 〜 ${selectedEvent.endsAt.toLocaleString("ja-JP")}`}
+                  : `${selectedEvent.startsAt.toLocaleString(
+                      "ja-JP"
+                    )} 〜 ${selectedEvent.endsAt.toLocaleString("ja-JP")}`}
               </p>
               {selectedEvent.description ? (
                 <p className="whitespace-pre-wrap text-sm">
@@ -439,12 +579,23 @@ export default function CalendarPage() {
                 閉じる
               </button>
               {canEdit ? (
-                <Link
-                  className="btn btn-primary"
-                  href={`/dashboard/calendar/${selectedEvent.id}/edit`}
-                >
-                  編集
-                </Link>
+                <>
+                  <Link
+                    className="btn btn-primary"
+                    href={`/dashboard/calendar/${selectedEvent.id}/edit`}
+                  >
+                    編集
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn btn-primary inline-flex items-center gap-2"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                  >
+                    <HiOutlineTrash className="text-base" />
+                    {deleteLoading ? "削除中..." : "削除"}
+                  </button>
+                </>
               ) : null}
             </div>
           </div>

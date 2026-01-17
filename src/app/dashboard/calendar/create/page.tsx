@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiOutlineArrowLeft,
   HiOutlineCalendarDays,
   HiOutlineCheckCircle,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
+  HiOutlineSquares2X2,
 } from "react-icons/hi2";
 import { hasSubPermission } from "@/lib/permissions";
+import { CALENDAR_COLOR_OPTIONS } from "@/lib/calendarColors";
 
 type AuthState =
   | { status: "loading" }
@@ -21,9 +25,7 @@ type AuthState =
 const pad2 = (value: number) => value.toString().padStart(2, "0");
 
 const formatDateInput = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
-    date.getDate()
-  )}`;
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const formatDateTimeInput = (date: Date) =>
   `${formatDateInput(date)}T${pad2(date.getHours())}:${pad2(
@@ -34,6 +36,9 @@ const parseDateInput = (value: string) => {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0);
 };
+
+const formatDateKey = (date: Date) =>
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
@@ -60,10 +65,43 @@ const differenceInDays = (start: Date, end: Date) => {
   );
 };
 
+const startOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const endOfDay = (date: Date) =>
+  new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+
+const startOfWeek = (date: Date) => {
+  const day = date.getDay();
+  return addDays(startOfDay(date), -day);
+};
+
+const endOfWeek = (date: Date) => {
+  const day = date.getDay();
+  return endOfDay(addDays(date, 6 - day));
+};
+
+const formatMonthLabel = (date: Date) =>
+  date.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+  });
+
+const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
+
 export default function CalendarCreatePage() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [color, setColor] = useState<string | null>(null);
   const [allDay, setAllDay] = useState(false);
   const [startDate, setStartDate] = useState(formatDateInput(new Date()));
   const [endDate, setEndDate] = useState(formatDateInput(new Date()));
@@ -77,6 +115,12 @@ export default function CalendarCreatePage() {
   const [allDaySpan, setAllDaySpan] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -121,9 +165,59 @@ export default function CalendarCreatePage() {
     setAllDaySpan(differenceInDays(start, end));
   }, [startDate, endDate]);
 
+  const calendarRange = useMemo(() => {
+    const monthStart = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      1
+    );
+    const monthEnd = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth() + 1,
+      0
+    );
+    const gridStart = startOfWeek(monthStart);
+    const gridEnd = endOfWeek(monthEnd);
+    return { monthStart, monthEnd, gridStart, gridEnd };
+  }, [calendarMonth]);
+
+  const calendarDays = useMemo(() => {
+    const items: Date[] = [];
+    let cursor = new Date(calendarRange.gridStart);
+    while (cursor <= calendarRange.gridEnd) {
+      items.push(new Date(cursor));
+      cursor = addDays(cursor, 1);
+    }
+    return items;
+  }, [calendarRange.gridEnd, calendarRange.gridStart]);
+
+  const selectedDateSet = useMemo(
+    () => new Set(selectedDates),
+    [selectedDates]
+  );
+
   const canEdit =
     auth.status === "authed" &&
-    (auth.role === "admin" || hasSubPermission(auth.subPermissions, "calendar_admin"));
+    (auth.role === "admin" ||
+      hasSubPermission(auth.subPermissions, "calendar_admin"));
+
+  const createEvent = async (startsAt: Date, endsAt: Date) => {
+    const res = await fetch("/api/calendar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title.trim(),
+        description: description.trim() || null,
+        color,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        allDay,
+      }),
+    });
+
+    const data = (await res.json()) as { id?: string; error?: string };
+    if (!res.ok) throw new Error(data.error || "予定の作成に失敗しました");
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -162,20 +256,7 @@ export default function CalendarCreatePage() {
         throw new Error("終了日時は開始日時以降にしてください");
       }
 
-      const res = await fetch("/api/calendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || null,
-          startsAt: startsAt.toISOString(),
-          endsAt: endsAt.toISOString(),
-          allDay,
-        }),
-      });
-
-      const data = (await res.json()) as { id?: string; error?: string };
-      if (!res.ok) throw new Error(data.error || "予定の作成に失敗しました");
+      await createEvent(startsAt, endsAt);
 
       location.href = "/dashboard/calendar";
     } catch (err) {
@@ -183,6 +264,96 @@ export default function CalendarCreatePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMultiSubmit = async () => {
+    if (!title.trim()) {
+      setMessage("タイトルを入力してください");
+      return;
+    }
+
+    if (selectedDates.length === 0) {
+      setMessage("日付を1つ以上選択してください");
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      let baseStart: Date | null = null;
+      if (!allDay) {
+        baseStart = new Date(startDateTime);
+        const baseEnd = new Date(endDateTime);
+        if (
+          Number.isNaN(baseStart.getTime()) ||
+          Number.isNaN(baseEnd.getTime())
+        ) {
+          throw new Error("日時の入力が不正です");
+        }
+        if (durationMs < 0) {
+          throw new Error("終了日時は開始日時以降にしてください");
+        }
+      }
+
+      for (const dateKey of selectedDates) {
+        const day = parseDateInput(dateKey);
+        let startsAt: Date;
+        let endsAt: Date;
+
+        if (allDay) {
+          startsAt = startOfDay(day);
+          endsAt = endOfDay(day);
+        } else {
+          startsAt = new Date(
+            day.getFullYear(),
+            day.getMonth(),
+            day.getDate(),
+            baseStart?.getHours() ?? 0,
+            baseStart?.getMinutes() ?? 0,
+            0,
+            0
+          );
+          endsAt = new Date(startsAt.getTime() + durationMs);
+        }
+
+        await createEvent(startsAt, endsAt);
+      }
+
+      location.href = "/dashboard/calendar";
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSelectedDate = (day: Date) => {
+    const key = formatDateKey(day);
+    setSelectedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return Array.from(next).sort();
+    });
+  };
+
+  const toggleMultiMode = () => {
+    setMultiSelectMode((prev) => {
+      const next = !prev;
+      if (next && selectedDates.length === 0) {
+        const seed = parseDateInput(startDate);
+        setSelectedDates([formatDateKey(seed)]);
+        setCalendarMonth(new Date(seed.getFullYear(), seed.getMonth(), 1));
+      }
+      if (!next) {
+        setSelectedDates([]);
+      }
+      return next;
+    });
   };
 
   if (auth.status === "loading") {
@@ -208,16 +379,8 @@ export default function CalendarCreatePage() {
   return (
     <main className="page">
       <header className="page-header">
-        <div>
-          <p className="page-subtitle">共有予定表</p>
-          <h1 className="page-title">予定を作成</h1>
-        </div>
-        <div className="page-actions">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/calendar">
-            <HiOutlineArrowLeft className="text-base" />
-            戻る
-          </Link>
-        </div>
+        <div></div>
+        <div className="page-actions"></div>
       </header>
 
       <section className="card space-y-4">
@@ -243,6 +406,55 @@ export default function CalendarCreatePage() {
           />
         </label>
 
+        <div className="space-y-2">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            色
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {CALENDAR_COLOR_OPTIONS.map((option) => {
+              const isActive = color === option.value;
+              return (
+                <button
+                  key={option.label}
+                  type="button"
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-[color:var(--accent)] shadow-[0_8px_18px_rgba(130,65,0,0.14)]"
+                      : "border-[color:var(--border)] hover:border-[color:var(--accent)]"
+                  }`}
+                  onClick={() => setColor(option.value)}
+                  aria-pressed={isActive}
+                >
+                  <span
+                    className="h-3 w-3 rounded-full border border-[color:var(--border)]"
+                    style={
+                      option.value
+                        ? { backgroundColor: option.value }
+                        : { backgroundColor: "var(--surface-strong)" }
+                    }
+                    aria-hidden="true"
+                  />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="inline-list">
+          <button className="btn" type="button" onClick={toggleMultiMode}>
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineSquares2X2 className="text-base" />
+              {multiSelectMode ? "単日作成に戻る" : "複数追加"}
+            </span>
+          </button>
+          {multiSelectMode ? (
+            <span className="text-xs text-[color:var(--muted)]">
+              選択日数: {selectedDates.length}
+            </span>
+          ) : null}
+        </div>
+
         <label className="inline-flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -264,9 +476,7 @@ export default function CalendarCreatePage() {
                 const start = parseDateInput(startDate);
                 setStartDateTime(formatDateTimeInput(start));
                 setEndDateTime(
-                  formatDateTimeInput(
-                    new Date(start.getTime() + durationMs)
-                  )
+                  formatDateTimeInput(new Date(start.getTime() + durationMs))
                 );
               }
             }}
@@ -275,40 +485,46 @@ export default function CalendarCreatePage() {
         </label>
 
         {allDay ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="field">
-              <span className="text-sm font-semibold text-[color:var(--muted)]">
-                開始日
-              </span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(event) => {
-                  const nextStart = event.target.value;
-                  setStartDate(nextStart);
-                  const start = parseDateInput(nextStart);
-                  const nextEnd = addDays(start, allDaySpan);
-                  setEndDate(formatDateInput(nextEnd));
-                }}
-              />
-            </label>
-            <label className="field">
-              <span className="text-sm font-semibold text-[color:var(--muted)]">
-                終了日
-              </span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(event) => {
-                  const nextEnd = event.target.value;
-                  setEndDate(nextEnd);
-                  const start = parseDateInput(startDate);
-                  const end = parseDateInput(nextEnd);
-                  setAllDaySpan(differenceInDays(start, end));
-                }}
-              />
-            </label>
-          </div>
+          multiSelectMode ? (
+            <p className="text-xs text-[color:var(--muted)]">
+              複数追加時は選択カレンダーの日付で終日予定を作成します。
+            </p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="field">
+                <span className="text-sm font-semibold text-[color:var(--muted)]">
+                  開始日
+                </span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(event) => {
+                    const nextStart = event.target.value;
+                    setStartDate(nextStart);
+                    const start = parseDateInput(nextStart);
+                    const nextEnd = addDays(start, allDaySpan);
+                    setEndDate(formatDateInput(nextEnd));
+                  }}
+                />
+              </label>
+              <label className="field">
+                <span className="text-sm font-semibold text-[color:var(--muted)]">
+                  終了日
+                </span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(event) => {
+                    const nextEnd = event.target.value;
+                    setEndDate(nextEnd);
+                    const start = parseDateInput(startDate);
+                    const end = parseDateInput(nextEnd);
+                    setAllDaySpan(differenceInDays(start, end));
+                  }}
+                />
+              </label>
+            </div>
+          )
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             <label className="field">
@@ -354,18 +570,131 @@ export default function CalendarCreatePage() {
           </div>
         )}
 
+        {multiSelectMode && !allDay ? (
+          <p className="text-xs text-[color:var(--muted)]">
+            複数追加時は選択カレンダーの日付に開始/終了の時刻のみ適用されます。
+          </p>
+        ) : null}
+
+        {multiSelectMode ? (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2">
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  onClick={() =>
+                    setCalendarMonth(
+                      new Date(
+                        calendarMonth.getFullYear(),
+                        calendarMonth.getMonth() - 1,
+                        1
+                      )
+                    )
+                  }
+                >
+                  <HiOutlineChevronLeft className="text-base" />
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  onClick={() =>
+                    setCalendarMonth(
+                      new Date(
+                        calendarMonth.getFullYear(),
+                        calendarMonth.getMonth() + 1,
+                        1
+                      )
+                    )
+                  }
+                >
+                  <HiOutlineChevronRight className="text-base" />
+                </button>
+              </div>
+              <div className="text-lg font-semibold tracking-wide">
+                {formatMonthLabel(calendarMonth)}
+              </div>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => {
+                  const now = new Date();
+                  setCalendarMonth(
+                    new Date(now.getFullYear(), now.getMonth(), 1)
+                  );
+                }}
+              >
+                今月
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[720px] rounded-2xl border border-[color:var(--border)] bg-[linear-gradient(135deg,rgba(255,253,246,0.96),rgba(255,248,232,0.96))]">
+                <div className="grid grid-cols-7 border-b border-[color:var(--border)] text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                  {WEEKDAYS.map((day) => (
+                    <div key={day} className="px-3 py-2 text-center">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7">
+                  {calendarDays.map((day) => {
+                    const key = formatDateKey(day);
+                    const isCurrentMonth =
+                      day.getMonth() === calendarMonth.getMonth();
+                    const isSelected = selectedDateSet.has(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`min-h-[96px] border-b border-r border-[color:var(--border)] px-2 py-2 text-left text-xs sm:min-h-[110px] transition ${
+                          isCurrentMonth
+                            ? "bg-transparent"
+                            : "bg-[color:var(--surface)] text-[color:var(--muted)]"
+                        } ${
+                          isSelected
+                            ? "border-[color:var(--accent)] !bg-[color:var(--accent)] text-white"
+                            : "hover:border-[color:var(--accent)]"
+                        }`}
+                        onClick={() => toggleSelectedDate(day)}
+                      >
+                        <span className="text-sm font-semibold">
+                          {day.getDate()}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="inline-list">
-          <button
-            className="btn btn-primary"
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            <span className="inline-flex items-center gap-2">
-              <HiOutlineCheckCircle className="text-base" />
-              {loading ? "作成中..." : "作成"}
-            </span>
-          </button>
+          {multiSelectMode ? (
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={handleMultiSubmit}
+              disabled={loading}
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineCheckCircle className="text-base" />
+                {loading ? "作成中..." : "確定"}
+              </span>
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineCheckCircle className="text-base" />
+                {loading ? "作成中..." : "作成"}
+              </span>
+            </button>
+          )}
           <div className="inline-flex items-center gap-2 text-xs text-[color:var(--muted)]">
             <HiOutlineCalendarDays className="text-base" />
             月表示で共有されます

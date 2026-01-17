@@ -4,6 +4,7 @@ import {
   hasAdminOrSubPermission,
   requireUserWithSubPermissions,
 } from "@/lib/permissions.server";
+import { isCalendarColor } from "@/lib/calendarColors";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -44,6 +45,7 @@ type CalendarEventPayload = {
   startsAt: string;
   endsAt: string;
   allDay?: boolean;
+  color?: string | null;
 };
 
 export async function GET(request: Request) {
@@ -81,7 +83,7 @@ export async function GET(request: Request) {
     const response = await adminClient
       .from("calendar_events")
       .select(
-        "id, title, description, starts_at, ends_at, all_day, created_by, created_at, updated_at"
+        "id, title, description, starts_at, ends_at, all_day, color, created_by, created_at, updated_at"
       )
       .lte("starts_at", rangeEndIso)
       .gte("ends_at", rangeStartIso);
@@ -139,6 +141,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const color =
+      typeof body.color === "string" && body.color.trim()
+        ? body.color
+        : null;
+    if (!isCalendarColor(color)) {
+      return NextResponse.json(
+        { error: "色の指定が不正です" },
+        { status: 400 }
+      );
+    }
+
     const insertResponse = await adminClient
       .from("calendar_events")
       .insert({
@@ -147,6 +160,7 @@ export async function POST(request: Request) {
         starts_at: startsAt.toISOString(),
         ends_at: endsAt.toISOString(),
         all_day: Boolean(body.allDay),
+        color,
         created_by: auth.userId,
         updated_at: new Date().toISOString(),
       })

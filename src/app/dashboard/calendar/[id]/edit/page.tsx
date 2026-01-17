@@ -2,12 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  HiOutlineArrowLeft,
-  HiOutlineCheckCircle,
-  HiOutlineTrash,
-} from "react-icons/hi2";
+import { HiOutlineArrowLeft, HiOutlineCheckCircle } from "react-icons/hi2";
 import { hasSubPermission } from "@/lib/permissions";
+import { CALENDAR_COLOR_OPTIONS } from "@/lib/calendarColors";
 
 type AuthState =
   | { status: "loading" }
@@ -25,14 +22,13 @@ type CalendarEvent = {
   starts_at: string;
   ends_at: string;
   all_day: boolean;
+  color: string | null;
 };
 
 const pad2 = (value: number) => value.toString().padStart(2, "0");
 
 const formatDateInput = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
-    date.getDate()
-  )}`;
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const formatDateTimeInput = (date: Date) =>
   `${formatDateInput(date)}T${pad2(date.getHours())}:${pad2(
@@ -76,6 +72,7 @@ export default function CalendarEditPage({ params }: RouteParams) {
   const [eventId, setEventId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [color, setColor] = useState<string | null>(null);
   const [allDay, setAllDay] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -121,7 +118,10 @@ export default function CalendarEditPage({ params }: RouteParams) {
         const { id } = await params;
         setEventId(id);
         const res = await fetch(`/api/calendar/${id}`, { cache: "no-store" });
-        const data = (await res.json()) as { event?: CalendarEvent; error?: string };
+        const data = (await res.json()) as {
+          event?: CalendarEvent;
+          error?: string;
+        };
         if (!res.ok)
           throw new Error(data.error || "予定の読み込みに失敗しました");
         if (!data.event) throw new Error("予定が見つかりません");
@@ -130,6 +130,7 @@ export default function CalendarEditPage({ params }: RouteParams) {
         setTitle(event.title);
         setDescription(event.description ?? "");
         setAllDay(event.all_day);
+        setColor(event.color ?? null);
 
         const start = new Date(event.starts_at);
         const end = new Date(event.ends_at);
@@ -166,7 +167,8 @@ export default function CalendarEditPage({ params }: RouteParams) {
 
   const canEdit =
     auth.status === "authed" &&
-    (auth.role === "admin" || hasSubPermission(auth.subPermissions, "calendar_admin"));
+    (auth.role === "admin" ||
+      hasSubPermission(auth.subPermissions, "calendar_admin"));
 
   const handleSubmit = async () => {
     if (!eventId) return;
@@ -212,6 +214,7 @@ export default function CalendarEditPage({ params }: RouteParams) {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || null,
+          color,
           startsAt: startsAt.toISOString(),
           endsAt: endsAt.toISOString(),
           allDay,
@@ -221,27 +224,6 @@ export default function CalendarEditPage({ params }: RouteParams) {
       const data = (await res.json()) as { id?: string; error?: string };
       if (!res.ok) throw new Error(data.error || "予定の更新に失敗しました");
 
-      location.href = "/dashboard/calendar";
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "不明なエラー");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!eventId) return;
-    if (!confirm("この予定を削除しますか？")) return;
-
-    setLoading(true);
-    setMessage(null);
-
-    try {
-      const res = await fetch(`/api/calendar/${eventId}`, {
-        method: "DELETE",
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "予定の削除に失敗しました");
       location.href = "/dashboard/calendar";
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "不明なエラー");
@@ -273,16 +255,8 @@ export default function CalendarEditPage({ params }: RouteParams) {
   return (
     <main className="page">
       <header className="page-header">
-        <div>
-          <p className="page-subtitle">共有予定表</p>
-          <h1 className="page-title">予定を編集</h1>
-        </div>
-        <div className="page-actions">
-          <Link className="btn btn-ghost inline-flex items-center gap-2" href="/dashboard/calendar">
-            <HiOutlineArrowLeft className="text-base" />
-            戻る
-          </Link>
-        </div>
+        <div></div>
+        <div className="page-actions"></div>
       </header>
 
       <section className="card space-y-4">
@@ -308,6 +282,41 @@ export default function CalendarEditPage({ params }: RouteParams) {
           />
         </label>
 
+        <div className="space-y-2">
+          <span className="text-sm font-semibold text-[color:var(--muted)]">
+            色
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {CALENDAR_COLOR_OPTIONS.map((option) => {
+              const isActive = color === option.value;
+              return (
+                <button
+                  key={option.label}
+                  type="button"
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-[color:var(--accent)] shadow-[0_8px_18px_rgba(130,65,0,0.14)]"
+                      : "border-[color:var(--border)] hover:border-[color:var(--accent)]"
+                  }`}
+                  onClick={() => setColor(option.value)}
+                  aria-pressed={isActive}
+                >
+                  <span
+                    className="h-3 w-3 rounded-full border border-[color:var(--border)]"
+                    style={
+                      option.value
+                        ? { backgroundColor: option.value }
+                        : { backgroundColor: "var(--surface-strong)" }
+                    }
+                    aria-hidden="true"
+                  />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <label className="inline-flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -329,9 +338,7 @@ export default function CalendarEditPage({ params }: RouteParams) {
                 const start = parseDateInput(startDate);
                 setStartDateTime(formatDateTimeInput(start));
                 setEndDateTime(
-                  formatDateTimeInput(
-                    new Date(start.getTime() + durationMs)
-                  )
+                  formatDateTimeInput(new Date(start.getTime() + durationMs))
                 );
               }
             }}
@@ -430,15 +437,6 @@ export default function CalendarEditPage({ params }: RouteParams) {
               <HiOutlineCheckCircle className="text-base" />
               {loading ? "保存中..." : "保存"}
             </span>
-          </button>
-          <button
-            className="btn btn-ghost inline-flex items-center gap-2"
-            type="button"
-            onClick={handleDelete}
-            disabled={loading || !eventId}
-          >
-            <HiOutlineTrash className="text-base" />
-            削除
           </button>
         </div>
 
