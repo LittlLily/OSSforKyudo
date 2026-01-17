@@ -53,7 +53,7 @@ export async function GET() {
   }
 
   try {
-    let logsQuery = adminClient
+    const logsQuery = adminClient
       .from("invoice_logs")
       .select(
         "id, created_at, action, operator_id, invoice_id, target_label, detail, subject_user_id"
