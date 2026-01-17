@@ -8,6 +8,7 @@ import {
   HiOutlineArrowLeft,
   HiOutlineClipboardDocumentList,
   HiOutlineChartBar,
+  HiOutlineCalendar,
   HiOutlineDocumentText,
   HiOutlineHome,
   HiOutlinePencilSquare,
@@ -49,6 +50,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     if (path.startsWith("/dashboard/logs/invoices")) return "請求書ログ";
     if (path.startsWith("/dashboard/logs/bows")) return "弓ログ";
     if (path.startsWith("/dashboard/logs")) return "ログ";
+    if (path.startsWith("/dashboard/calendar/create")) return "予定作成";
+    if (path.startsWith("/dashboard/calendar/") && path.endsWith("/edit"))
+      return "予定編集";
+    if (path.startsWith("/dashboard/calendar")) return "カレンダー";
     if (path.startsWith("/dashboard/surveys/analytics"))
       return "アンケート集計";
     if (path.startsWith("/dashboard/surveys/create")) return "アンケート作成";
@@ -106,6 +111,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         return <HiOutlineDocumentText />;
       case "アンケート集計":
         return <HiOutlineChartBar />;
+      case "カレンダー":
+        return <HiOutlineCalendar />;
+      case "予定作成":
+        return <HiOutlinePlusCircle />;
+      case "予定編集":
+        return <HiOutlinePencilSquare />;
       default:
         return <HiOutlineHome />;
     }
@@ -118,6 +129,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       return { href: "/dashboard/bows", label: "戻る" };
     if (path.startsWith("/dashboard/logs/") && path !== "/dashboard/logs")
       return { href: "/dashboard/logs", label: "戻る" };
+    if (path.startsWith("/dashboard/calendar/") && path !== "/dashboard/calendar")
+      return { href: "/dashboard/calendar", label: "戻る" };
     if (path.startsWith("/dashboard/surveys/")) {
       if (path === "/dashboard/surveys") return null;
       if (

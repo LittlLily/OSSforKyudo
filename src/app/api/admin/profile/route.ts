@@ -217,7 +217,9 @@ export async function POST(request: Request) {
         update[key] = normalizeSubPermissions(value);
         return;
       }
-      update[key] = value ?? null;
+      if (typeof value === "string" || value == null) {
+        update[key] = value ?? null;
+      }
     }
   });
 

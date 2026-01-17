@@ -7,12 +7,19 @@ import {
   HiOutlineTrash,
   HiOutlineUserPlus,
 } from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 const lengthOptions = ["並寸", "二寸伸", "四寸伸", "三寸詰"] as const;
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; id: string; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      id: string;
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type BowRow = {
@@ -69,6 +76,7 @@ export default function BowLoanPage() {
             id?: string;
             email?: string | null;
             role?: "admin" | "user";
+            subPermissions?: string[];
           };
           error?: string;
         };
@@ -80,6 +88,7 @@ export default function BowLoanPage() {
           id: data.user?.id ?? "",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
@@ -195,6 +204,17 @@ export default function BowLoanPage() {
     return (
       <main className="page">
         <p className="text-sm">エラー: {auth.message}</p>
+      </main>
+    );
+  }
+
+  if (
+    auth.role !== "admin" &&
+    !hasSubPermission(auth.subPermissions, "bow_admin")
+  ) {
+    return (
+      <main className="page">
+        <p className="text-sm">権限がありません</p>
       </main>
     );
   }

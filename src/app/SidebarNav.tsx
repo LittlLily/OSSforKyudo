@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   HiOutlineClipboardDocumentList,
+  HiOutlineCalendar,
   HiOutlineDocumentText,
   HiOutlineHome,
   HiOutlineReceiptRefund,
@@ -31,6 +32,12 @@ const navItems: NavItem[] = [
     href: "/dashboard/surveys",
     match: (path) => path.startsWith("/dashboard/surveys"),
     icon: <HiOutlineClipboardDocumentList />,
+  },
+  {
+    label: "カレンダー",
+    href: "/dashboard/calendar",
+    match: (path) => path.startsWith("/dashboard/calendar"),
+    icon: <HiOutlineCalendar />,
   },
   {
     label: "弓管理",
