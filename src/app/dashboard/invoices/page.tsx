@@ -2,10 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineAdjustmentsHorizontal,
+  HiOutlineArrowPath,
+  HiOutlineArrowUturnLeft,
+  HiOutlineCheckBadge,
+  HiOutlineCheckCircle,
+  HiOutlineClock,
+  HiOutlineMagnifyingGlass,
+  HiOutlinePencilSquare,
+  HiOutlinePlusCircle,
+  HiOutlineReceiptRefund,
+  HiOutlineTrash,
+  HiOutlineXMark,
+} from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type AuthState =
   | { status: "loading" }
-  | { status: "authed"; email: string; role: "admin" | "user" }
+  | {
+      status: "authed";
+      email: string;
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
   | { status: "error"; message: string };
 
 type Invoice = {
@@ -54,6 +74,10 @@ export default function InvoicesPage() {
     title: "",
     description: "",
   });
+  const isAdmin =
+    auth.status === "authed" &&
+    (auth.role === "admin" ||
+      hasSubPermission(auth.subPermissions, "invoice_admin"));
 
   useEffect(() => {
     (async () => {
@@ -64,19 +88,25 @@ export default function InvoicesPage() {
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setAuth({
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
         });
       } catch (err) {
         setAuth({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
@@ -86,7 +116,7 @@ export default function InvoicesPage() {
     if (auth.status === "authed") {
       void loadInvoices();
     }
-  }, [auth.status]);
+  }, [auth.status, isAdmin]);
 
   const sortedInvoices = useMemo(() => {
     return [...invoices].sort((a, b) => {
@@ -102,6 +132,8 @@ export default function InvoicesPage() {
       timeZone: "Asia/Tokyo",
     });
   };
+
+  const baseInvoicePath = isAdmin ? "/api/admin/invoices" : "/api/invoices";
 
   const buildSearchParams = (values: Filters, status: InvoiceStatus) => {
     const params = new URLSearchParams();
@@ -132,17 +164,18 @@ export default function InvoicesPage() {
         nextFilters ?? filters,
         nextStatus ?? statusFilter
       );
-      const res = await fetch(`/api/admin/invoices?${query}`, {
+      const res = await fetch(`${baseInvoicePath}?${query}`, {
         cache: "no-store",
       });
       const data = (await res.json()) as {
         invoices?: Invoice[];
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error || "failed to load invoices");
+      if (!res.ok)
+        throw new Error(data.error || "請求の読み込みに失敗しました");
       setInvoices(data.invoices ?? []);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setLoading(false);
     }
@@ -166,7 +199,7 @@ export default function InvoicesPage() {
     setMessage(null);
     const amount = Number(editForm.amount);
     if (!amount || Number.isNaN(amount)) {
-      setMessage("amount is required");
+      setMessage("金額は必須です");
       return;
     }
 
@@ -182,10 +215,15 @@ export default function InvoicesPage() {
         }),
       });
       const data = (await res.json()) as {
-        invoice?: { id: string; amount: number; title: string | null; description: string | null } | null;
+        invoice?: {
+          id: string;
+          amount: number;
+          title: string | null;
+          description: string | null;
+        } | null;
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error || "failed to update invoice");
+      if (!res.ok) throw new Error(data.error || "請求の更新に失敗しました");
       if (data.invoice) {
         setInvoices((prev) =>
           prev.map((invoice) =>
@@ -200,10 +238,10 @@ export default function InvoicesPage() {
           )
         );
       }
-      setMessage("updated");
+      setMessage("更新しました");
       cancelEdit();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     }
   };
 
@@ -216,11 +254,11 @@ export default function InvoicesPage() {
         body: JSON.stringify({ id: invoiceId }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to approve");
+      if (!res.ok) throw new Error(data.error || "承認に失敗しました");
       setInvoices((prev) => prev.filter((invoice) => invoice.id !== invoiceId));
-      setMessage("approved");
+      setMessage("承認しました");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     }
   };
 
@@ -233,11 +271,11 @@ export default function InvoicesPage() {
         body: JSON.stringify({ id: invoiceId }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to revert");
+      if (!res.ok) throw new Error(data.error || "差し戻しに失敗しました");
       setInvoices((prev) => prev.filter((invoice) => invoice.id !== invoiceId));
-      setMessage("reverted");
+      setMessage("差し戻しました");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     }
   };
 
@@ -251,34 +289,36 @@ export default function InvoicesPage() {
         body: JSON.stringify({ id: invoiceId }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to delete");
+      if (!res.ok) throw new Error(data.error || "削除に失敗しました");
       setInvoices((prev) => prev.filter((invoice) => invoice.id !== invoiceId));
-      setMessage("deleted");
+      setMessage("削除しました");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     }
   };
 
   if (auth.status === "loading") {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   if (auth.status === "error") {
     return (
       <main className="page">
-        <p className="text-sm">error: {auth.message}</p>
+        <p className="text-sm">エラー: {auth.message}</p>
       </main>
     );
   }
-
-  const isAdmin = auth.role === "admin";
 
   return (
     <main className="page">
       {isAdmin ? (
         <div className="inline-list">
-          <Link className="btn btn-primary" href="/dashboard/invoices/create">
-            Create invoice
+          <Link
+            className="btn btn-primary inline-flex items-center gap-2"
+            href="/dashboard/invoices/create"
+          >
+            <HiOutlinePlusCircle className="text-base" />
+            請求を作成
           </Link>
         </div>
       ) : null}
@@ -295,7 +335,10 @@ export default function InvoicesPage() {
             }}
             type="button"
           >
-            Pending
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineClock className="text-base" />
+              保留
+            </span>
           </button>
           <button
             className={`btn ${
@@ -307,136 +350,149 @@ export default function InvoicesPage() {
             }}
             type="button"
           >
-            Approved
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineCheckCircle className="text-base" />
+              承認済み
+            </span>
           </button>
         </div>
       </section>
 
-      {isAdmin ? (
-        <section className="section">
-          <h2 className="section-title">Filters</h2>
-          <div className="card space-y-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">display_name</span>
-                <input
-                  className="w-full"
-                  value={filters.display_name}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      display_name: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">student_number</span>
-                <input
-                  className="w-full"
-                  value={filters.student_number}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      student_number: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">generation</span>
-                <input
-                  className="w-full"
-                  value={filters.generation}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      generation: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="field text-sm">
-                <span className="text-[color:var(--muted)]">gender</span>
-                <select
-                  className="w-full"
-                  value={filters.gender}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      gender: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="">all</option>
-                  <option value="male">male</option>
-                  <option value="female">female</option>
-                  <option value="other">other</option>
-                </select>
-              </label>
-            </div>
-            <div className="inline-list">
-              <button
-                className="btn btn-primary"
-                onClick={() => void loadInvoices()}
-                type="button"
+      <section className="section">
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineAdjustmentsHorizontal className="text-base" />
+          絞り込み
+        </h2>
+        <div className="card space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">表示名</span>
+              <input
+                className="w-full"
+                value={filters.display_name}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    display_name: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">学籍番号</span>
+              <input
+                className="w-full"
+                value={filters.student_number}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    student_number: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">代</span>
+              <input
+                className="w-full"
+                value={filters.generation}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    generation: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field text-sm">
+              <span className="text-[color:var(--muted)]">性別</span>
+              <select
+                className="w-full"
+                value={filters.gender}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    gender: event.target.value,
+                  }))
+                }
               >
-                Search
-              </button>
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setFilters(emptyFilters);
-                  void loadInvoices(emptyFilters);
-                }}
-                type="button"
-              >
-                Reset
-              </button>
-            </div>
+                <option value="">すべて</option>
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+              </select>
+            </label>
           </div>
-        </section>
-      ) : null}
+          <div className="inline-list">
+            <button
+              className="btn btn-ghost"
+              onClick={() => void loadInvoices()}
+              type="button"
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineMagnifyingGlass className="text-base" />
+                検索
+              </span>
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                setFilters(emptyFilters);
+                void loadInvoices(emptyFilters);
+              }}
+              type="button"
+            >
+              <span className="inline-flex items-center gap-2">
+                <HiOutlineArrowPath className="text-base" />
+                リセット
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
 
       <section className="section">
-        <h2 className="section-title">
-          {statusFilter === "pending" ? "Pending invoices" : "Approved invoices"}
+        <h2 className="section-title flex items-center gap-2">
+          <span className="text-base">
+            {statusFilter === "pending" ? (
+              <HiOutlineReceiptRefund />
+            ) : (
+              <HiOutlineCheckBadge />
+            )}
+          </span>
+          {statusFilter === "pending" ? "保留中の請求" : "承認済みの請求"}
         </h2>
         {message ? <p className="text-sm">{message}</p> : null}
-        {loading ? <p className="text-sm">loading...</p> : null}
+        {loading ? <p className="text-sm">読み込み中...</p> : null}
         {!loading && sortedInvoices.length === 0 ? (
-          <p className="text-sm">no invoices</p>
+          <p className="text-sm">請求がありません</p>
         ) : null}
         {sortedInvoices.length > 0 ? (
           <div className="table-wrap">
             <table className="min-w-[960px] w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left">student_number</th>
-                  <th className="text-left">display_name</th>
-                  <th className="text-left">amount</th>
-                  <th className="text-left">billed_at</th>
+                  <th className="text-left">学籍番号</th>
+                  <th className="text-left">表示名</th>
+                  <th className="text-left">金額</th>
+                  <th className="text-left">請求日</th>
                   {statusFilter === "approved" ? (
-                    <th className="text-left">approved_at</th>
+                    <th className="text-left">承認日</th>
                   ) : null}
                   {statusFilter === "approved" ? (
-                    <th className="text-left">approver</th>
+                    <th className="text-left">承認者</th>
                   ) : null}
-                  <th className="text-left">requester</th>
-                  <th className="text-left">title</th>
-                  <th className="text-left">description</th>
-                  <th className="text-left">actions</th>
+                  <th className="text-left">申請者</th>
+                  <th className="text-left">件名</th>
+                  <th className="text-left">内容</th>
+                  <th className="text-left">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedInvoices.map((invoice) => (
                   <tr key={invoice.id}>
-                    <td>
-                      {invoice.account_student_number ?? "-"}
-                    </td>
-                    <td>
-                      {invoice.account_display_name ?? "-"}
-                    </td>
+                    <td>{invoice.account_student_number ?? "-"}</td>
+                    <td>{invoice.account_display_name ?? "-"}</td>
                     <td>
                       {editingId === invoice.id ? (
                         <input
@@ -455,9 +511,7 @@ export default function InvoicesPage() {
                         invoice.amount
                       )}
                     </td>
-                    <td>
-                      {billedAtLabel(invoice.billed_at)}
-                    </td>
+                    <td>{billedAtLabel(invoice.billed_at)}</td>
                     {statusFilter === "approved" ? (
                       <td>
                         {invoice.approved_at
@@ -466,13 +520,9 @@ export default function InvoicesPage() {
                       </td>
                     ) : null}
                     {statusFilter === "approved" ? (
-                      <td>
-                        {invoice.approver_display_name ?? "-"}
-                      </td>
+                      <td>{invoice.approver_display_name ?? "-"}</td>
                     ) : null}
-                    <td>
-                      {invoice.requester_display_name ?? "-"}
-                    </td>
+                    <td>{invoice.requester_display_name ?? "-"}</td>
                     <td>
                       {editingId === invoice.id ? (
                         <input
@@ -515,14 +565,20 @@ export default function InvoicesPage() {
                                 onClick={() => void revertInvoice(invoice.id)}
                                 type="button"
                               >
-                                Revert
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineArrowUturnLeft className="text-base" />
+                                  差し戻し
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >
-                                Delete
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineTrash className="text-base" />
+                                  削除
+                                </span>
                               </button>
                             </>
                           ) : editingId === invoice.id ? (
@@ -532,14 +588,20 @@ export default function InvoicesPage() {
                                 onClick={() => void saveEdit(invoice.id)}
                                 type="button"
                               >
-                                Save
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineCheckCircle className="text-base" />
+                                  保存
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={cancelEdit}
                                 type="button"
                               >
-                                Cancel
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineXMark className="text-base" />
+                                  キャンセル
+                                </span>
                               </button>
                             </>
                           ) : (
@@ -549,21 +611,30 @@ export default function InvoicesPage() {
                                 onClick={() => beginEdit(invoice)}
                                 type="button"
                               >
-                                Edit
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlinePencilSquare className="text-base" />
+                                  編集
+                                </span>
                               </button>
                               <button
-                                className="btn btn-primary"
+                                className="btn btn-ghost"
                                 onClick={() => void approveInvoice(invoice.id)}
                                 type="button"
                               >
-                                Approve
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineCheckBadge className="text-base" />
+                                  承認
+                                </span>
                               </button>
                               <button
                                 className="btn btn-ghost"
                                 onClick={() => void deleteInvoice(invoice.id)}
                                 type="button"
                               >
-                                Delete
+                                <span className="inline-flex items-center gap-2">
+                                  <HiOutlineTrash className="text-base" />
+                                  削除
+                                </span>
                               </button>
                             </>
                           )

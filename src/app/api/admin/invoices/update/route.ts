@@ -1,35 +1,13 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { logInvoiceAction } from "@/lib/audit";
+import {
+  hasAdminOrSubPermission,
+  requireUserWithSubPermissions,
+} from "@/lib/permissions.server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-
-type AuthResult =
-  | { ok: true; role: "admin" | "user" }
-  | { ok: false; status: number; message: string };
-
-async function requireAdmin(): Promise<AuthResult> {
-  const supabase = createClient(await cookies());
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    return { ok: false, status: 500, message: error.message };
-  }
-
-  if (!data.user) {
-    return { ok: false, status: 401, message: "unauthorized" };
-  }
-
-  const role =
-    (data.user.app_metadata?.role as "admin" | "user") ?? "user";
-  if (role !== "admin") {
-    return { ok: false, status: 403, message: "forbidden" };
-  }
-
-  return { ok: true, role };
-}
 
 function getAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -41,9 +19,12 @@ function getAdminClient() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireUserWithSubPermissions();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
+  }
+  if (!hasAdminOrSubPermission(auth, "invoice_admin")) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   let adminClient;
@@ -67,6 +48,15 @@ export async function POST(request: Request) {
     const id = body.id?.trim();
     if (!id) {
       return NextResponse.json({ error: "id required" }, { status: 400 });
+    }
+
+    const currentResponse = await adminClient
+      .from("invoices")
+      .select("id, account_id, title, description")
+      .eq("id", id)
+      .maybeSingle();
+    if (currentResponse.error) {
+      throw currentResponse.error;
     }
 
     const amount = body.amount;
@@ -97,6 +87,16 @@ export async function POST(request: Request) {
     if (!updateResponse.data || updateResponse.data.length === 0) {
       return NextResponse.json({ error: "invoice not found" }, { status: 404 });
     }
+
+    const updatedInvoice = updateResponse.data?.[0];
+    await logInvoiceAction(adminClient, {
+      action: "請求更新",
+      operatorId: auth.userId,
+      subjectUserId: currentResponse.data?.account_id ?? null,
+      invoiceId: currentResponse.data?.id ?? null,
+      targetLabel: updatedInvoice?.title ?? currentResponse.data?.title ?? "請求",
+      detail: updatedInvoice?.description ?? currentResponse.data?.description ?? null,
+    });
 
     return NextResponse.json({ invoice: updateResponse.data?.[0] ?? null });
   } catch (error) {

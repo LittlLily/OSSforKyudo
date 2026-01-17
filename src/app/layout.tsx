@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kyudo SaaS Console",
-  description: "Enterprise management console",
+  title: "弓道SaaSコンソール",
+  description: "エンタープライズ管理コンソール",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-[color:var(--surface-strong)] text-[color:var(--foreground)]`}
       >

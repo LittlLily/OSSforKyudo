@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineChartBar,
+  HiOutlineCheckCircle,
+  HiOutlineClock,
+  HiOutlinePlusCircle,
+} from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type Survey = {
   id: string;
@@ -25,6 +32,15 @@ type ListResponse = {
   error?: string;
 };
 
+type AuthState =
+  | { status: "loading" }
+  | {
+      status: "authed";
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
+  | { status: "error"; message: string };
+
 const formatDate = (value: string | null) => {
   if (!value) return "-";
   return new Date(value).toLocaleString("ja-JP", {
@@ -33,11 +49,11 @@ const formatDate = (value: string | null) => {
 };
 
 const statusLabel = (survey: Survey) => {
-  if (survey.status === "draft") return "draft";
-  if (survey.status === "closed") return "closed";
-  if (survey.availability === "upcoming") return "upcoming";
-  if (survey.availability === "closed") return "closed";
-  return "open";
+  if (survey.status === "draft") return "下書き";
+  if (survey.status === "closed") return "終了";
+  if (survey.availability === "upcoming") return "開始前";
+  if (survey.availability === "closed") return "終了";
+  return "公開";
 };
 
 const responseLabel = (survey: Survey) => {
@@ -47,12 +63,41 @@ const responseLabel = (survey: Survey) => {
 };
 
 export default function SurveysPage() {
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [role, setRole] = useState<"admin" | "user">("user");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = "/login?next=/dashboard/surveys";
+          return;
+        }
+        const data = (await res.json()) as {
+          user?: { role?: "admin" | "user"; subPermissions?: string[] };
+          error?: string;
+        };
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
+        setAuth({
+          status: "authed",
+          role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
+        });
+      } catch (err) {
+        setAuth({
+          status: "error",
+          message: err instanceof Error ? err.message : "不明なエラー",
+        });
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (auth.status !== "authed") return;
     (async () => {
       try {
         setLoading(true);
@@ -63,16 +108,16 @@ export default function SurveysPage() {
           return;
         }
         const data = (await res.json()) as ListResponse;
-        if (!res.ok) throw new Error(data.error || "failed to load surveys");
+        if (!res.ok)
+          throw new Error(data.error || "アンケートの読み込みに失敗しました");
         setSurveys(data.surveys ?? []);
-        setRole(data.role ?? "user");
       } catch (err) {
-        setMessage(err instanceof Error ? err.message : "unknown error");
+        setMessage(err instanceof Error ? err.message : "不明なエラー");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [auth.status]);
 
   const [pendingSurveys, completedSurveys] = useMemo(() => {
     const pending: Survey[] = [];
@@ -87,29 +132,54 @@ export default function SurveysPage() {
     return [pending, completed];
   }, [surveys]);
 
+  if (auth.status === "loading") {
+    return <main className="page">読み込み中...</main>;
+  }
+
+  if (auth.status === "error") {
+    return (
+      <main className="page">
+        <p className="text-sm">エラー: {auth.message}</p>
+      </main>
+    );
+  }
+
   if (loading) {
-    return <main className="page">loading...</main>;
+    return <main className="page">読み込み中...</main>;
   }
 
   return (
     <main className="page">
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/surveys/analytics">
-          Analytics
+        <Link
+          className="btn btn-primary inline-flex items-center gap-2"
+          href="/dashboard/surveys/analytics"
+        >
+          <HiOutlineChartBar className="text-base" />
+          集計
         </Link>
-        {role === "admin" ? (
-          <Link className="btn btn-primary" href="/dashboard/surveys/create">
-            Create survey
+        {auth.status === "authed" &&
+        (auth.role === "admin" ||
+          hasSubPermission(auth.subPermissions, "survey_admin")) ? (
+          <Link
+            className="btn btn-primary inline-flex items-center gap-2"
+            href="/dashboard/surveys/create"
+          >
+            <HiOutlinePlusCircle className="text-base" />
+            アンケート作成
           </Link>
         ) : null}
       </div>
 
-      {message ? <p className="text-sm">error: {message}</p> : null}
+      {message ? <p className="text-sm">エラー: {message}</p> : null}
 
       <section className="section">
-        <h2 className="section-title">Pending Responses</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineClock className="text-base" />
+          未回答
+        </h2>
         {pendingSurveys.length === 0 ? (
-          <p className="text-sm">no pending surveys</p>
+          <p className="text-sm">未回答のアンケートはありません</p>
         ) : (
           <div className="space-y-3">
             {pendingSurveys.map((survey) => (
@@ -125,9 +195,9 @@ export default function SurveysPage() {
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
                 <div className="mt-3 text-xs text-[color:var(--muted)]">
-                  <span>open: {formatDate(survey.opens_at)}</span>
+                  <span>開始: {formatDate(survey.opens_at)}</span>
                   <span className="ml-3">
-                    close: {formatDate(survey.closes_at)}
+                    終了: {formatDate(survey.closes_at)}
                   </span>
                 </div>
               </div>
@@ -137,9 +207,12 @@ export default function SurveysPage() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">Completed</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineCheckCircle className="text-base" />
+          回答済み
+        </h2>
         {completedSurveys.length === 0 ? (
-          <p className="text-sm">no completed surveys</p>
+          <p className="text-sm">回答済みのアンケートはありません</p>
         ) : (
           <div className="space-y-3">
             {completedSurveys.map((survey) => (
@@ -155,9 +228,9 @@ export default function SurveysPage() {
                   <p className="mt-2 text-sm">{survey.description}</p>
                 ) : null}
                 <div className="mt-3 text-xs text-[color:var(--muted)]">
-                  <span>open: {formatDate(survey.opens_at)}</span>
+                  <span>開始: {formatDate(survey.opens_at)}</span>
                   <span className="ml-3">
-                    close: {formatDate(survey.closes_at)}
+                    終了: {formatDate(survey.closes_at)}
                   </span>
                 </div>
               </div>

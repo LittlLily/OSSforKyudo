@@ -1,35 +1,13 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { logInvoiceAction } from "@/lib/audit";
+import {
+  hasAdminOrSubPermission,
+  requireUserWithSubPermissions,
+} from "@/lib/permissions.server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-
-type AuthResult =
-  | { ok: true; role: "admin" | "user"; userId: string }
-  | { ok: false; status: number; message: string };
-
-async function requireAdmin(): Promise<AuthResult> {
-  const supabase = createClient(await cookies());
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    return { ok: false, status: 500, message: error.message };
-  }
-
-  if (!data.user) {
-    return { ok: false, status: 401, message: "unauthorized" };
-  }
-
-  const role =
-    (data.user.app_metadata?.role as "admin" | "user") ?? "user";
-  if (role !== "admin") {
-    return { ok: false, status: 403, message: "forbidden" };
-  }
-
-  return { ok: true, role, userId: data.user.id };
-}
 
 function getAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -41,9 +19,12 @@ function getAdminClient() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireUserWithSubPermissions();
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
+  }
+  if (!hasAdminOrSubPermission(auth, "invoice_admin")) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   let adminClient;
@@ -67,6 +48,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ids required" }, { status: 400 });
     }
 
+    const invoiceLookup = await adminClient
+      .from("invoices")
+      .select("id, account_id, title, description")
+      .in("id", ids);
+    if (invoiceLookup.error) {
+      throw invoiceLookup.error;
+    }
+    const invoiceById = new Map(
+      (invoiceLookup.data ?? []).map((invoice) => [invoice.id, invoice])
+    );
+
     const updateResponse = await adminClient
       .from("invoices")
       .update({
@@ -81,6 +73,20 @@ export async function POST(request: Request) {
     if (updateResponse.error) {
       throw updateResponse.error;
     }
+
+    await Promise.all(
+      (updateResponse.data ?? []).map((entry) => {
+        const invoice = invoiceById.get(entry.id);
+        return logInvoiceAction(adminClient, {
+          action: "請求承認",
+          operatorId: auth.userId,
+          subjectUserId: invoice?.account_id ?? null,
+          invoiceId: invoice?.id ?? entry.id,
+          targetLabel: invoice?.title ?? "請求",
+          detail: invoice?.description ?? null,
+        });
+      })
+    );
 
     return NextResponse.json({ updated: updateResponse.data?.length ?? 0 });
   } catch (error) {

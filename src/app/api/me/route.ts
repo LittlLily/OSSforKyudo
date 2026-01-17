@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeSubPermissions } from "@/lib/permissions";
 
 export async function GET() {
   const supabase = createClient(await cookies());
@@ -21,7 +22,7 @@ export async function GET() {
     (data.user.app_metadata?.role as "admin" | "user") ?? "user";
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, student_number")
+    .select("display_name, student_number, sub_permissions")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -30,6 +31,7 @@ export async function GET() {
       id: data.user.id,
       email: data.user.email,
       role,
+      subPermissions: normalizeSubPermissions(profile?.sub_permissions),
     },
     profile: {
       displayName: profile?.display_name ?? null,

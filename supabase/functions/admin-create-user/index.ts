@@ -122,6 +122,18 @@ Deno.serve(async (req) => {
     }
   }
 
+  if (data.user?.id) {
+    const { error: logError } = await adminClient.from("account_logs").insert({
+      action: "プロフィール作成",
+      operator_id: user.id,
+      target_id: data.user.id,
+      subject_user_id: data.user.id,
+    });
+    if (logError) {
+      console.error("account_logs insert failed", logError.message);
+    }
+  }
+
   return new Response(
     JSON.stringify({
       user_id: data.user?.id,

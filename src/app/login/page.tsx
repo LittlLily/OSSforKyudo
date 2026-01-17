@@ -1,3 +1,4 @@
+import { HiOutlineLockClosed, HiOutlineShieldCheck } from "react-icons/hi2";
 import LoginForm from "./LoginForm";
 
 export default async function LoginPage({
@@ -11,9 +12,15 @@ export default async function LoginPage({
   return (
     <main className="page w-full max-w-2xl">
       <div className="space-y-2">
-        <p className="section-title">Access</p>
-        <h1 className="page-title">Login</h1>
-        <p className="page-subtitle">Enterprise sign-in portal</p>
+        <p className="section-title flex items-center gap-2">
+          <HiOutlineShieldCheck className="text-base" />
+          アクセス
+        </p>
+        <h1 className="page-title flex items-center gap-3">
+          <HiOutlineLockClosed className="text-2xl" />
+          ログイン
+        </h1>
+        <p className="page-subtitle">エンタープライズ向けサインインポータル</p>
       </div>
       <div className="card">
         <LoginForm nextPath={nextPath} />

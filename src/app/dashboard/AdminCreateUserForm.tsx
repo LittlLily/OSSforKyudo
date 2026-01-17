@@ -2,6 +2,13 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import {
+  HiOutlineAtSymbol,
+  HiOutlineIdentification,
+  HiOutlineKey,
+  HiOutlineShieldCheck,
+  HiOutlineUserPlus,
+} from "react-icons/hi2";
 import { createUser } from "@/app/actions/admin";
 
 type AdminCreateState = { message: string };
@@ -16,7 +23,10 @@ function SubmitButton() {
       type="submit"
       disabled={pending}
     >
-      {pending ? "Creating..." : "Create"}
+      <span className="inline-flex items-center gap-2">
+        <HiOutlineUserPlus className="text-base" />
+        {pending ? "作成中..." : "作成"}
+      </span>
     </button>
   );
 }
@@ -27,8 +37,9 @@ export default function AdminCreateUserForm() {
   return (
     <form className="card space-y-4" action={formAction}>
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
-          Email
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineAtSymbol className="text-base" />
+          メールアドレス
         </span>
         <input
           className="w-full"
@@ -37,8 +48,9 @@ export default function AdminCreateUserForm() {
         />
       </label>
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
-          Password
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineKey className="text-base" />
+          パスワード
         </span>
         <input
           className="w-full"
@@ -48,8 +60,9 @@ export default function AdminCreateUserForm() {
         />
       </label>
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
-          Name (日本語)
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineIdentification className="text-base" />
+          氏名（日本語）
         </span>
         <input
           className="w-full"
@@ -57,12 +70,13 @@ export default function AdminCreateUserForm() {
         />
       </label>
       <label className="field">
-        <span className="text-sm font-semibold text-[color:var(--muted)]">
-          Role
+        <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--muted)]">
+          <HiOutlineShieldCheck className="text-base" />
+          権限
         </span>
         <select className="w-full" name="role">
-          <option value="user">user</option>
-          <option value="admin">admin</option>
+          <option value="user">ユーザー</option>
+          <option value="admin">管理者</option>
         </select>
       </label>
       <div className="inline-list">

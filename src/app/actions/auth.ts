@@ -15,7 +15,7 @@ export async function signIn(
   const nextPath = String(formData.get("next") ?? "/");
 
   if (!email || !password) {
-    return { message: "error: email and password are required" };
+    return { message: "エラー: メールアドレスとパスワードは必須です" };
   }
 
   const supabase = createClient(await cookies());
@@ -24,7 +24,7 @@ export async function signIn(
     password,
   });
 
-  if (error) return { message: `error: ${error.message}` };
+  if (error) return { message: `エラー: ${error.message}` };
 
   redirect(nextPath);
 }

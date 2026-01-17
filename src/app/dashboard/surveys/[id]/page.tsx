@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlineChartBar,
+  HiOutlineChatBubbleBottomCenterText,
+  HiOutlineCheckCircle,
+  HiOutlineClipboardDocumentList,
+  HiOutlineInbox,
+  HiOutlinePencilSquare,
+  HiOutlinePlusCircle,
+  HiOutlineTrash,
+} from "react-icons/hi2";
+import { hasSubPermission } from "@/lib/permissions";
 
 type SurveyDetail = {
   role: "admin" | "user";
@@ -45,7 +56,11 @@ type SurveyDetail = {
     countsByOption: Record<string, number>;
     respondentsByOption: Record<
       string,
-      { id: string; display_name: string | null; student_number: string | null }[]
+      {
+        id: string;
+        display_name: string | null;
+        student_number: string | null;
+      }[]
     >;
     unresponded: {
       id: string;
@@ -57,6 +72,15 @@ type SurveyDetail = {
 
 type DetailResponse = SurveyDetail & { error?: string };
 
+type AuthState =
+  | { status: "loading" }
+  | {
+      status: "authed";
+      role: "admin" | "user";
+      subPermissions: string[];
+    }
+  | { status: "error"; message: string };
+
 const formatDate = (value: string | null) => {
   if (!value) return "-";
   return new Date(value).toLocaleString("ja-JP", {
@@ -65,15 +89,16 @@ const formatDate = (value: string | null) => {
 };
 
 const statusLabel = (detail: SurveyDetail) => {
-  if (detail.survey.status === "draft") return "draft";
-  if (detail.survey.status === "closed") return "closed";
-  if (detail.availability === "upcoming") return "upcoming";
-  if (detail.availability === "closed") return "closed";
-  return "open";
+  if (detail.survey.status === "draft") return "下書き";
+  if (detail.survey.status === "closed") return "終了";
+  if (detail.availability === "upcoming") return "開始前";
+  if (detail.availability === "closed") return "終了";
+  return "公開";
 };
 
 export default function SurveyDetailPage() {
   const params = useParams<{ id: string }>();
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [detail, setDetail] = useState<SurveyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -81,6 +106,34 @@ export default function SurveyDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [optionDrafts, setOptionDrafts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (res.status === 401) {
+          location.href = `/login?next=/dashboard/surveys/${params.id}`;
+          return;
+        }
+        const data = (await res.json()) as {
+          user?: { role?: "admin" | "user"; subPermissions?: string[] };
+          error?: string;
+        };
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
+        setAuth({
+          status: "authed",
+          role: data.user?.role ?? "user",
+          subPermissions: data.user?.subPermissions ?? [],
+        });
+      } catch (err) {
+        setAuth({
+          status: "error",
+          message: err instanceof Error ? err.message : "不明なエラー",
+        });
+      }
+    })();
+  }, [params.id]);
 
   const loadDetail = async () => {
     setLoading(true);
@@ -94,23 +147,28 @@ export default function SurveyDetailPage() {
         return;
       }
       const data = (await res.json()) as DetailResponse;
-      if (!res.ok) throw new Error(data.error || "failed to load survey");
+      if (!res.ok)
+        throw new Error(data.error || "アンケートの読み込みに失敗しました");
       setDetail(data);
       setAnswers(data.response?.answers ?? {});
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (params?.id) {
+    if (params?.id && auth.status === "authed") {
       void loadDetail();
     }
-  }, [params?.id]);
+  }, [params?.id, auth.status]);
 
-  const updateAnswer = (questionId: string, optionId: string, checked: boolean) => {
+  const updateAnswer = (
+    questionId: string,
+    optionId: string,
+    checked: boolean
+  ) => {
     setAnswers((prev) => {
       const current = prev[questionId] ?? [];
       if (checked) {
@@ -145,10 +203,10 @@ export default function SurveyDetailPage() {
         body: JSON.stringify(payload),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to submit");
+      if (!res.ok) throw new Error(data.error || "送信に失敗しました");
       await loadDetail();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setSaving(false);
     }
@@ -167,10 +225,10 @@ export default function SurveyDetailPage() {
         body: JSON.stringify({ id: detail.survey.id }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to delete");
+      if (!res.ok) throw new Error(data.error || "削除に失敗しました");
       location.href = "/dashboard/surveys";
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setDeleting(false);
     }
@@ -187,8 +245,11 @@ export default function SurveyDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId, label }),
       });
-      const data = (await res.json()) as { option?: { id: string; label: string }; error?: string };
-      if (!res.ok) throw new Error(data.error || "failed to add option");
+      const data = (await res.json()) as {
+        option?: { id: string; label: string };
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "選択肢の追加に失敗しました");
       setDetail((prev) => {
         const newOption = data.option;
         if (!prev || !newOption) return prev;
@@ -210,7 +271,7 @@ export default function SurveyDetailPage() {
       });
       setOptionDrafts((prev) => ({ ...prev, [questionId]: "" }));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "unknown error");
+      setMessage(err instanceof Error ? err.message : "不明なエラー");
     } finally {
       setSaving(false);
     }
@@ -221,38 +282,53 @@ export default function SurveyDetailPage() {
     return `${detail.results.respondedCount}/${detail.results.eligibleCount} (${detail.results.responseRate}%)`;
   }, [detail]);
 
-  if (loading) return <main className="page">loading...</main>;
+  if (auth.status === "loading") {
+    return <main className="page">読み込み中...</main>;
+  }
+  if (auth.status === "error") {
+    return (
+      <main className="page">
+        <p>エラー: {auth.message}</p>
+      </main>
+    );
+  }
+  if (loading) return <main className="page">読み込み中...</main>;
   if (!detail) {
     return (
       <main className="page">
-        <p>survey not found</p>
+        <p>アンケートが見つかりません</p>
       </main>
     );
   }
 
   return (
     <main className="page">
-      <h1 className="text-lg font-semibold">{detail.survey.title}</h1>
+      <h1 className="flex items-center gap-2 text-lg font-semibold">
+        <HiOutlineClipboardDocumentList className="text-xl" />
+        {detail.survey.title}
+      </h1>
       <div className="inline-list">
-        <Link className="btn btn-ghost" href="/dashboard/surveys">
-          Back
-        </Link>
         <span className="chip">{statusLabel(detail)}</span>
-        {detail.role === "admin" && detail.survey.status === "draft" ? (
+        {auth.status === "authed" &&
+        (auth.role === "admin" ||
+          hasSubPermission(auth.subPermissions, "survey_admin")) &&
+        detail.survey.status === "draft" ? (
           <>
             <Link
-              className="btn btn-ghost"
+              className="btn btn-ghost inline-flex items-center gap-2"
               href={`/dashboard/surveys/${detail.survey.id}/edit`}
             >
-              Edit
+              <HiOutlinePencilSquare className="text-base" />
+              編集
             </Link>
             <button
-              className="btn btn-ghost text-[color:var(--accent-strong)]"
+              className="btn btn-ghost text-[color:var(--accent-strong)] inline-flex items-center gap-2"
               type="button"
               onClick={deleteSurvey}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              <HiOutlineTrash className="text-base" />
+              {deleting ? "削除中..." : "削除"}
             </button>
           </>
         ) : null}
@@ -263,17 +339,22 @@ export default function SurveyDetailPage() {
       ) : null}
 
       <div className="text-xs text-[color:var(--muted)]">
-        <span>open: {formatDate(detail.survey.opens_at)}</span>
-        <span className="ml-3">close: {formatDate(detail.survey.closes_at)}</span>
+        <span>開始: {formatDate(detail.survey.opens_at)}</span>
+        <span className="ml-3">
+          終了: {formatDate(detail.survey.closes_at)}
+        </span>
       </div>
 
-      {message ? <p className="text-sm">error: {message}</p> : null}
+      {message ? <p className="text-sm">エラー: {message}</p> : null}
 
       {!detail.eligible ? (
         <p className="text-sm">回答権がありません</p>
       ) : detail.canAnswer ? (
         <section className="section">
-          <h2 className="section-title">Response</h2>
+          <h2 className="section-title flex items-center gap-2">
+            <HiOutlineChatBubbleBottomCenterText className="text-base" />
+            回答
+          </h2>
           {detail.questions.map((question, index) => (
             <div key={question.id} className="card space-y-2">
               <div className="font-semibold text-sm">
@@ -293,7 +374,9 @@ export default function SurveyDetailPage() {
                           type="radio"
                           name={question.id}
                           checked={checked}
-                          onChange={() => setSingleAnswer(question.id, option.id)}
+                          onChange={() =>
+                            setSingleAnswer(question.id, option.id)
+                          }
                         />
                         {option.label}
                       </label>
@@ -308,7 +391,11 @@ export default function SurveyDetailPage() {
                         type="checkbox"
                         checked={checked}
                         onChange={(event) =>
-                          updateAnswer(question.id, option.id, event.target.checked)
+                          updateAnswer(
+                            question.id,
+                            option.id,
+                            event.target.checked
+                          )
                         }
                       />
                       {option.label}
@@ -320,7 +407,7 @@ export default function SurveyDetailPage() {
                 <div className="inline-list">
                   <input
                     className="w-64"
-                    placeholder="Add option"
+                    placeholder="選択肢を追加"
                     value={optionDrafts[question.id] ?? ""}
                     onChange={(event) =>
                       setOptionDrafts((prev) => ({
@@ -335,7 +422,10 @@ export default function SurveyDetailPage() {
                     onClick={() => addOption(question.id)}
                     disabled={saving}
                   >
-                    Add
+                    <span className="inline-flex items-center gap-2">
+                      <HiOutlinePlusCircle className="text-base" />
+                      追加
+                    </span>
                   </button>
                 </div>
               ) : null}
@@ -347,7 +437,14 @@ export default function SurveyDetailPage() {
             onClick={submit}
             disabled={saving}
           >
-            {saving ? "Saving..." : detail.response ? "Update response" : "Submit response"}
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineCheckCircle className="text-base" />
+              {saving
+                ? "送信中..."
+                : detail.response
+                ? "回答を更新"
+                : "回答を送信"}
+            </span>
           </button>
         </section>
       ) : (
@@ -357,7 +454,10 @@ export default function SurveyDetailPage() {
       )}
 
       <section className="section">
-        <h2 className="section-title">Results</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <HiOutlineChartBar className="text-base" />
+          集計結果
+        </h2>
         <p className="text-sm">回答率: {responseSummary}</p>
         {!detail.survey.is_anonymous ? (
           <h3 className="font-semibold">選択肢ごとの回答者</h3>
@@ -369,11 +469,12 @@ export default function SurveyDetailPage() {
             </div>
             <div className="space-y-1 text-sm">
               {question.options.map((option) => (
-                <div key={option.id} className="flex items-center justify-between gap-2">
+                <div
+                  key={option.id}
+                  className="flex items-center justify-between gap-2"
+                >
                   <span>{option.label}</span>
-                  <span>
-                    {detail.results.countsByOption[option.id] ?? 0}
-                  </span>
+                  <span>{detail.results.countsByOption[option.id] ?? 0}</span>
                 </div>
               ))}
             </div>
@@ -387,7 +488,7 @@ export default function SurveyDetailPage() {
                       <div className="font-semibold">{option.label}</div>
                       {respondents.length === 0 ? (
                         <p className="text-xs text-[color:var(--muted)]">
-                          no respondents
+                          回答者なし
                         </p>
                       ) : (
                         <ul className="list-disc pl-4 space-y-1">
@@ -407,9 +508,12 @@ export default function SurveyDetailPage() {
           </div>
         ))}
         <div className="card-soft space-y-2">
-          <h3 className="font-semibold text-sm">未回答者</h3>
+          <h3 className="flex items-center gap-2 font-semibold text-sm">
+            <HiOutlineInbox className="text-base" />
+            未回答者
+          </h3>
           {detail.results.unresponded.length === 0 ? (
-            <p className="text-sm">no unresponded accounts</p>
+            <p className="text-sm">未回答者はいません</p>
           ) : (
             <ul className="text-sm list-disc pl-4 space-y-1">
               {detail.results.unresponded.map((user) => (

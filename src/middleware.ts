@@ -19,6 +19,7 @@ export async function middleware(request: NextRequest) {
         },
       },
       cookieOptions: {
+        maxAge: 60 * 60 * 2,
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",

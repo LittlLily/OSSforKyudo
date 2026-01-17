@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  HiOutlineArrowRightOnRectangle,
+  HiOutlineIdentification,
+  HiOutlineShieldCheck,
+  HiOutlineTag,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 import { signOut } from "@/app/actions/auth";
+import {
+  SUB_PERMISSION_LABELS,
+  normalizeSubPermissions,
+  type SubPermission,
+} from "@/lib/permissions";
 
 type ViewState =
   | { status: "loading" }
@@ -11,6 +23,7 @@ type ViewState =
       role: "admin" | "user";
       displayName?: string | null;
       studentNumber?: string | null;
+      subPermissions: SubPermission[];
     }
   | { status: "error"; message: string };
 
@@ -22,36 +35,44 @@ export default function SidebarFooter() {
       try {
         const res = await fetch("/api/me", { cache: "no-store" });
         if (res.status === 401) {
-          setState({ status: "error", message: "not signed in" });
+          setState({ status: "error", message: "サインインしていません" });
           return;
         }
         const data = (await res.json()) as {
-          user?: { email?: string | null; role?: "admin" | "user" };
+          user?: {
+            email?: string | null;
+            role?: "admin" | "user";
+            subPermissions?: string[];
+          };
           profile?: {
             displayName?: string | null;
             studentNumber?: string | null;
           };
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || "failed to load user");
+        if (!res.ok)
+          throw new Error(data.error || "ユーザーの読み込みに失敗しました");
         setState({
           status: "authed",
           email: data.user?.email ?? "",
           role: data.user?.role ?? "user",
           displayName: data.profile?.displayName ?? null,
           studentNumber: data.profile?.studentNumber ?? null,
+          subPermissions: normalizeSubPermissions(data.user?.subPermissions),
         });
       } catch (err) {
         setState({
           status: "error",
-          message: err instanceof Error ? err.message : "unknown error",
+          message: err instanceof Error ? err.message : "不明なエラー",
         });
       }
     })();
   }, []);
 
   if (state.status === "loading") {
-    return <div className="text-xs text-[color:var(--muted)]">loading...</div>;
+    return (
+      <div className="text-xs text-[color:var(--muted)]">読み込み中...</div>
+    );
   }
 
   if (state.status === "error") {
@@ -62,17 +83,46 @@ export default function SidebarFooter() {
     );
   }
 
+  const roleLabel = state.role === "admin" ? "管理者" : "一般";
+  const subPermissionLabels =
+    state.subPermissions.length > 0
+      ? state.subPermissions
+          .map((permission) => SUB_PERMISSION_LABELS[permission])
+          .filter(Boolean)
+          .join("・")
+      : "-";
+
   return (
     <div className="space-y-3 text-sm">
-      <p>name: {state.displayName ?? "てすとさん"}</p>
-      <p>student number: {state.studentNumber ?? "-"}</p>
-      <p>role: {state.role}</p>
+      <p className="flex items-center gap-2">
+        <HiOutlineUserCircle className="text-base" />
+        {state.displayName ?? "てすとさん"}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineIdentification className="text-base" />
+        学籍番号: {state.studentNumber ?? "-"}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineShieldCheck className="text-base" />
+        権限: {roleLabel}
+      </p>
+      <p className="flex items-center gap-2">
+        <HiOutlineShieldCheck className="text-base" />
+        サブ権限: {subPermissionLabels}
+      </p>
       <form action={signOut}>
-        <button className="btn btn-ghost" type="submit">
-          Sign out
+        <button
+          className="btn btn-ghost inline-flex items-center gap-2"
+          type="submit"
+        >
+          <HiOutlineArrowRightOnRectangle className="text-base" />
+          サインアウト
         </button>
       </form>
-      <p className="text-xs text-[color:var(--muted)]">V0.0.0</p>
+      <p className="flex items-center gap-2 text-xs text-[color:var(--muted)]">
+        <HiOutlineTag className="text-sm" />
+        V0.0.0
+      </p>
     </div>
   );
 }
