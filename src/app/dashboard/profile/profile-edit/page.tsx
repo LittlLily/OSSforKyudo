@@ -151,11 +151,7 @@ export default function AdminProfileEditPage() {
       setRole(data.role ?? "user");
       setSubPermissions(normalizeSubPermissions(profile.sub_permissions));
       setLoadedId(profile.id ?? null);
-      if (profile.id) {
-        setMessage(`読み込み完了: ${profile.id}`);
-      } else {
-        setMessage("読み込み完了");
-      }
+      setMessage("読み込み完了");
     } catch (err) {
       setMessage(err instanceof Error ? `エラー: ${err.message}` : "エラー");
       setLoadedId(null);
