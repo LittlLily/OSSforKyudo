@@ -9,7 +9,11 @@ import {
   HiOutlineUserCircle,
 } from "react-icons/hi2";
 import { signOut } from "@/app/actions/auth";
-import { SUB_PERMISSION_LABELS } from "@/lib/permissions";
+import {
+  SUB_PERMISSION_LABELS,
+  normalizeSubPermissions,
+  type SubPermission,
+} from "@/lib/permissions";
 
 type ViewState =
   | { status: "loading" }
@@ -19,7 +23,7 @@ type ViewState =
       role: "admin" | "user";
       displayName?: string | null;
       studentNumber?: string | null;
-      subPermissions: string[];
+      subPermissions: SubPermission[];
     }
   | { status: "error"; message: string };
 
@@ -54,7 +58,7 @@ export default function SidebarFooter() {
           role: data.user?.role ?? "user",
           displayName: data.profile?.displayName ?? null,
           studentNumber: data.profile?.studentNumber ?? null,
-          subPermissions: data.user?.subPermissions ?? [],
+          subPermissions: normalizeSubPermissions(data.user?.subPermissions),
         });
       } catch (err) {
         setState({
