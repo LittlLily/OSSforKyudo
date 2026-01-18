@@ -116,9 +116,8 @@
   }
 
   .font-hiragino {
-    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
-      "Hiragino Kaku Gothic Pro", "Hiragino Mincho ProN",
-      "Hiragino Mincho Pro", sans-serif;
+    font-family: "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Yu Mincho",
+      "YuMincho", "HGS明朝E", "MS PMincho", serif;
   }
 
   .field {
