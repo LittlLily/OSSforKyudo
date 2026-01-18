@@ -25,7 +25,10 @@ import SidebarNav from "./SidebarNav";
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const isLogin = pathname?.startsWith("/login");
+  const isLogin =
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/reset-password") ||
+    pathname?.startsWith("/forgot-password");
   const currentLabel = (() => {
     const path = pathname ?? "/";
     if (path === "/") return "ダッシュボード";

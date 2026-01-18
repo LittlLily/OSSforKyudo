@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import {
@@ -59,6 +60,9 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
 
       <div className="inline-list">
         <SubmitButton />
+        <Link className="btn btn-ghost" href="/forgot-password">
+          パスワードを忘れた方
+        </Link>
       </div>
 
       {state.message ? (
