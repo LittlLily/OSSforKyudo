@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "弓道SaaSコンソール",
-  description: "エンタープライズ管理コンソール",
+  title: "弓道システム",
+  description: "弓道System",
 };
 
 export default function RootLayout({
