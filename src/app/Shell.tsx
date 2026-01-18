@@ -189,7 +189,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-3xl font-extrabold uppercase tracking-[0.08em] font-hiragino">
-              せいしゃ
+              セイシャ
             </h1>
             <p className="mt-2 text-sm text-[color:var(--muted)]">
               弓道システム
@@ -222,7 +222,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </button>
             <div className="min-[769px]:hidden">
               <p className="text-base font-extrabold uppercase tracking-[0.08em] text-[color:var(--muted)] font-hiragino">
-                せいしゃ
+                セイシャ
               </p>
               <p className="text-xs font-semibold tracking-[0.16em]">
                 弓道システム
