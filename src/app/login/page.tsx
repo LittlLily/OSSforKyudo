@@ -25,7 +25,7 @@ export default async function LoginPage({
       <div className="card">
         <LoginForm nextPath={nextPath} />
       </div>
-      <div className="text-xs text-[color:var(--muted)]">V0.0.0</div>
+      <div className="text-xs text-[color:var(--muted)]">V1.0.0</div>
     </main>
   );
 }

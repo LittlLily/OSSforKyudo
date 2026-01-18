@@ -121,7 +121,7 @@ export default function SidebarFooter() {
       </form>
       <p className="flex items-center gap-2 text-xs text-[color:var(--muted)]">
         <HiOutlineTag className="text-sm" />
-        V0.0.0
+        V1.0.0
       </p>
     </div>
   );
